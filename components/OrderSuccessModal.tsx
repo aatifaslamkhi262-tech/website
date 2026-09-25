@@ -73,17 +73,23 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ orderData,
 
         {/* Bank Transfer Instructions if applicable */}
         {orderData.status === 'PAYMENT_PENDING' && (
-          <div className="bg-emerald-50 border border-emerald-200 text-left p-3.5 rounded-2xl text-xs space-y-1.5 mb-6 text-emerald-900">
-            <div className="font-bold flex items-center gap-1.5 text-emerald-800">
-              <Landmark className="w-4 h-4" /> Bank Account Details for Transfer:
+          <div className="bg-emerald-50 border border-emerald-200 text-left p-3.5 rounded-2xl text-xs space-y-2 mb-6 text-emerald-900">
+            <div className="font-bold flex items-center gap-1.5 text-emerald-900 border-b border-emerald-200/60 pb-1.5">
+              <Landmark className="w-4 h-4 text-emerald-700" /> Bank Transfer Accounts:
             </div>
-            <p className="text-[11px] text-emerald-700">
-              Account Title: <span className="font-bold">PGS Game Shop Wholesale</span><br />
-              Bank Name: <span className="font-bold">Meezan Bank Ltd</span><br />
-              IBAN: <span className="font-mono font-bold">PK36MEZN0099120104819201</span>
-            </p>
-            <p className="text-[10px] text-emerald-600 italic">
-              * Please WhatsApp your transfer screenshot along with Order Ref #{orderData.saleNumber} to 0300-1234567.
+            <div className="text-[11px] text-emerald-800 space-y-1.5">
+              <div>
+                <span className="text-emerald-600 font-semibold">Account Title:</span>{' '}
+                <span className="font-bold text-slate-900">PGS Play Station Game Shop</span>
+              </div>
+              <div className="bg-white p-2 rounded-xl border border-emerald-100 space-y-1 font-mono text-[10.5px]">
+                <div><span className="font-bold text-emerald-700">1. HBL Bank:</span> 25207000563203</div>
+                <div><span className="font-bold text-emerald-700">2. Bank Alfalah:</span> 03981007742994</div>
+                <div><span className="font-bold text-emerald-700">3. Bank ALHABIB:</span> 50260081004133015</div>
+              </div>
+            </div>
+            <p className="text-[10px] text-emerald-700 font-medium">
+              * Please WhatsApp transfer receipt screenshot with Order Ref <span className="font-mono font-bold">#{orderData.saleNumber}</span> to <a href="https://wa.me/message/GI7WD5IE3FXDE1" target="_blank" rel="noopener noreferrer" className="font-bold underline text-emerald-800">+92 312 2319157</a>.
             </p>
           </div>
         )}

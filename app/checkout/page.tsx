@@ -257,19 +257,38 @@ export default function CheckoutPage() {
                     {/* Direct Bank Transfer */}
                     <label
                       onClick={() => setPaymentMethod('BANK_TRANSFER')}
-                      className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                      className={`flex flex-col gap-2 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                         paymentMethod === 'BANK_TRANSFER'
                           ? 'border-emerald-600 bg-emerald-50/40 shadow-2xs'
                           : 'border-slate-200 bg-white hover:border-slate-300'
                       }`}
                     >
-                      <div className={`p-2.5 rounded-xl ${paymentMethod === 'BANK_TRANSFER' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                        <CreditCard className="w-5 h-5" />
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2.5 rounded-xl ${paymentMethod === 'BANK_TRANSFER' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                          <CreditCard className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900 text-sm">Bank Transfer</div>
+                          <div className="text-[11px] text-slate-500">HBL / Bank Alfalah / Bank ALHABIB</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-sm">Bank Transfer</div>
-                        <div className="text-[11px] text-slate-500">Meezan / HBL IBAN transfer</div>
-                      </div>
+
+                      {/* Expandable Bank Details Panel */}
+                      {paymentMethod === 'BANK_TRANSFER' && (
+                        <div className="mt-2 pt-2 border-t border-emerald-200/60 text-xs text-slate-800 space-y-1.5 animate-in fade-in duration-150">
+                          <div className="font-bold text-emerald-800 flex items-center justify-between">
+                            <span>Account Title: PGS Play Station Game Shop</span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-emerald-200/80 space-y-1 font-mono text-[11px]">
+                            <div className="flex justify-between items-center"><span className="font-bold text-emerald-700">1. HBL:</span> <span>25207000563203</span></div>
+                            <div className="flex justify-between items-center"><span className="font-bold text-emerald-700">2. Bank Alfalah:</span> <span>03981007742994</span></div>
+                            <div className="flex justify-between items-center"><span className="font-bold text-emerald-700">3. Bank ALHABIB:</span> <span>50260081004133015</span></div>
+                          </div>
+                          <p className="text-[10.5px] text-slate-500 italic">
+                            * Transfer screenshot can be sent via WhatsApp after order confirmation.
+                          </p>
+                        </div>
+                      )}
                     </label>
                   </div>
                 </div>

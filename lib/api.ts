@@ -58,10 +58,15 @@ export async function fetchCategories(): Promise<Category[]> {
 
     const json: CategoriesApiResponse = await res.json();
     if (json.success && Array.isArray(json.data)) {
+      const cleanCategories = json.data.filter(c => {
+        const name = (c.name || '').toUpperCase();
+        return !name.includes('REPAIR') && c._id !== '6ab53bed11becccecde93543';
+      });
+
       if (globalCatalogCache) {
-        globalCatalogCache.categories = json.data;
+        globalCatalogCache.categories = cleanCategories;
       }
-      return json.data;
+      return cleanCategories;
     }
     return [];
   } catch (err) {
@@ -87,7 +92,7 @@ async function ensureCatalogCache(): Promise<Product[]> {
       // Check browser localStorage cache if available for instant warm startup
       if (typeof window !== 'undefined') {
         try {
-          const cached = localStorage.getItem('pgs_catalog_cache_v2');
+          const cached = localStorage.getItem('pgs_catalog_cache_v3');
           if (cached) {
             const parsed = JSON.parse(cached);
             if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0 && (now - parsed.timestamp < CACHE_TTL_MS)) {
@@ -126,8 +131,19 @@ async function ensureCatalogCache(): Promise<Product[]> {
         allProducts.forEach(p => uniqueMap.set(p._id, p));
         const unique = Array.from(uniqueMap.values());
 
+        // Exclude all products belonging to "REPAIRING PARTS" category
+        const filteredProducts = unique.filter(p => {
+          if (typeof p.category === 'object' && p.category !== null) {
+            const catName = (p.category.name || '').toUpperCase();
+            if (catName.includes('REPAIR') || p.category._id === '6ab53bed11becccecde93543') return false;
+          } else if (typeof p.category === 'string') {
+            if (p.category === '6ab53bed11becccecde93543' || p.category.toUpperCase().includes('REPAIR')) return false;
+          }
+          return true;
+        });
+
         // Global Sort: In-Stock items FIRST (highest stock first), Out-of-Stock items AT THE VERY END
-        unique.sort((a, b) => {
+        filteredProducts.sort((a, b) => {
           if (a.inStock !== b.inStock) {
             return a.inStock ? -1 : 1;
           }
@@ -136,17 +152,17 @@ async function ensureCatalogCache(): Promise<Product[]> {
 
         globalCatalogCache = {
           timestamp: Date.now(),
-          products: unique,
+          products: filteredProducts,
           categories: globalCatalogCache?.categories || []
         };
 
         if (typeof window !== 'undefined') {
           try {
-            localStorage.setItem('pgs_catalog_cache_v2', JSON.stringify(globalCatalogCache));
+            localStorage.setItem('pgs_catalog_cache_v3', JSON.stringify(globalCatalogCache));
           } catch (e) {}
         }
 
-        return unique;
+        return filteredProducts;
       }
 
       return globalCatalogCache?.products || [];

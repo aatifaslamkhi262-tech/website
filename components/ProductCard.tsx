@@ -79,7 +79,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   const handleWhatsAppContact = (e: React.MouseEvent) => {
     e.stopPropagation();
     const msg = `Hi PGS Game Shop, I want to inquire about price and availability for ${product.name} (SKU: ${product.sku}).`;
-    window.open(`https://wa.me/923001234567?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/923122319157?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   // Prepare product object with effective final price for cart

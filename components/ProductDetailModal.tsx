@@ -29,23 +29,29 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
   if (!activeProduct) return null;
 
-  // Find sibling condition variants (e.g. New vs Used for same title)
+  const getCatId = (cat: any) => (typeof cat === 'object' && cat !== null ? cat._id : cat);
+  const activeCatId = getCatId(activeProduct.category);
+
+  // Find sibling condition variants (e.g. New vs Used for exact same title and category)
   const getBaseName = (name: string) => {
     return name.replace(/\b(USED|NEW|REFURBISHED|SEALED|UNSEALED|KIT|EDITION)\b/gi, '').trim().toLowerCase();
   };
 
   const currentBaseName = getBaseName(activeProduct.name);
   
-  // Find matching variants from catalog sharing same base name
+  // Find matching variants from catalog sharing same base name and same category
   const variants = allProducts.filter(p => {
     if (p._id === activeProduct._id) return true;
+    const pCatId = getCatId(p.category);
+    if (activeCatId && pCatId && activeCatId !== pCatId) return false;
+
     const pBase = getBaseName(p.name);
-    return pBase.length > 3 && (pBase === currentBaseName || currentBaseName.includes(pBase) || pBase.includes(currentBaseName));
+    return pBase.length > 2 && pBase === currentBaseName;
   });
 
-  // Group variants by unique condition grade
-  const uniqueConditionVariants: Product[] = [];
-  const seenConditions = new Set<string>();
+  // Group variants by unique condition grade, ensuring activeProduct is always first
+  const uniqueConditionVariants: Product[] = [activeProduct];
+  const seenConditions = new Set<string>([activeProduct.condition]);
 
   variants.forEach(v => {
     if (!seenConditions.has(v.condition)) {
@@ -86,7 +92,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
   const handleWhatsAppContact = () => {
     const msg = `Hi PGS Game Shop, I want to inquire about price and availability for ${activeProduct.name} (SKU: ${activeProduct.sku}).`;
-    window.open(`https://wa.me/923001234567?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/923122319157?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const effectiveProductForCart: Product = {
@@ -296,7 +302,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
             {/* Smart Action Buttons */}
             <div className="space-y-2.5 pt-2.5 border-t border-slate-100">
-              {activeProduct.inStock && !isPriceOnCall ? (
+              {activeProduct.inStock && !priceOnCall ? (
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-slate-700">Quantity</span>

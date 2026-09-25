@@ -61,9 +61,24 @@ function CatalogContent() {
 
   // Sync state if URL params change
   useEffect(() => {
-    if (searchParams.get('category')) setSelectedCategory(searchParams.get('category')!);
-    if (searchParams.get('search')) setSearchQuery(searchParams.get('search')!);
-    if (searchParams.get('condition')) setSelectedCondition(searchParams.get('condition') as any);
+    const cat = searchParams.get('category');
+    const search = searchParams.get('search');
+    const cond = searchParams.get('condition');
+
+    if (cat) {
+      setSelectedCategory(cat);
+      if (!search) {
+        setSearchQuery('');
+      }
+    }
+    if (search !== null && search !== undefined) {
+      setSearchQuery(search);
+    } else if (cat) {
+      setSearchQuery('');
+    }
+    if (cond) {
+      setSelectedCondition(cond as any);
+    }
   }, [searchParams]);
 
   // Fetch products

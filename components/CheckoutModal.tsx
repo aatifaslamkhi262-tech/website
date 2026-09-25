@@ -248,7 +248,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                   </div>
                   <div>
                     <div className="font-bold text-slate-900 text-sm">Bank Transfer</div>
-                    <div className="text-[11px] text-slate-500">Transfer via Meezan / HBL Bank</div>
+                    <div className="text-[11px] text-slate-500">HBL / Bank Alfalah / Bank ALHABIB</div>
                   </div>
                 </label>
               </div>
