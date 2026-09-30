@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, CartItem } from '@/lib/types';
+import { StockLimitModal } from '@/components/StockLimitModal';
 
 interface CartContextType {
   cart: CartItem[];
@@ -17,6 +18,7 @@ interface CartContextType {
   shippingCharges: number;
   grandTotal: number;
   totalItemsCount: number;
+  showStockLimitNotice: (product: Product, availableStock: number) => void;
 }
 
 const SHIPPING_FEE = 350;
@@ -27,6 +29,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [stockLimitNotice, setStockLimitNotice] = useState<{ product: Product; availableStock: number } | null>(null);
+
+  const showStockLimitNotice = (product: Product, availableStock: number) => {
+    setStockLimitNotice({ product, availableStock });
+  };
 
   // Load cart from localStorage on client side mount
   useEffect(() => {
@@ -55,20 +62,26 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addToCart = (product: Product, quantity: number = 1) => {
     if (!product.inStock) return;
 
+    const maxAllowed = product.warehouseStock > 0 ? product.warehouseStock : 99;
+
     setCart(prev => {
       const existingIndex = prev.findIndex(item => item.product._id === product._id);
+      const currentQty = existingIndex > -1 ? prev[existingIndex].quantity : 0;
+      const targetQty = currentQty + quantity;
+
+      if (targetQty > maxAllowed) {
+        setStockLimitNotice({ product, availableStock: maxAllowed });
+      }
+
       if (existingIndex > -1) {
         const updated = [...prev];
-        const newQty = updated[existingIndex].quantity + quantity;
-        // Cap quantity at warehouse stock if available
-        const maxAllowed = product.warehouseStock > 0 ? product.warehouseStock : 99;
         updated[existingIndex] = {
           ...updated[existingIndex],
-          quantity: Math.min(newQty, maxAllowed)
+          quantity: Math.min(targetQty, maxAllowed)
         };
         return updated;
       }
-      return [...prev, { product, quantity: Math.min(quantity, product.warehouseStock || 99) }];
+      return [...prev, { product, quantity: Math.min(quantity, maxAllowed) }];
     });
 
     setIsCartOpen(true);
@@ -87,6 +100,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       prev.map(item => {
         if (item.product._id === productId) {
           const maxAllowed = item.product.warehouseStock > 0 ? item.product.warehouseStock : 99;
+          if (quantity > maxAllowed) {
+            setStockLimitNotice({ product: item.product, availableStock: maxAllowed });
+          }
           return { ...item, quantity: Math.min(quantity, maxAllowed) };
         }
         return item;
@@ -122,9 +138,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         shippingCharges,
         grandTotal,
         totalItemsCount,
+        showStockLimitNotice,
       }}
     >
       {children}
+      <StockLimitModal
+        stockInfo={stockLimitNotice}
+        onClose={() => setStockLimitNotice(null)}
+      />
     </CartContext.Provider>
   );
 };

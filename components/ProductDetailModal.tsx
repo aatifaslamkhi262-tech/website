@@ -13,7 +13,7 @@ interface ProductDetailModalProps {
 }
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, allProducts = [], onClose }) => {
-  const { addToCart } = useCart();
+  const { cart, addToCart, updateQuantity, openCart, showStockLimitNotice } = useCart();
   const [activeProduct, setActiveProduct] = useState<Product | null>(product);
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedImg, setSelectedImg] = useState<string | null>(null);
@@ -302,41 +302,98 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
             {/* Smart Action Buttons */}
             <div className="space-y-2.5 pt-2.5 border-t border-slate-100">
-              {activeProduct.inStock && !priceOnCall ? (
-                <>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-700">Quantity</span>
-                    <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                      <button
-                        onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                        className="px-3 py-1 text-slate-600 hover:bg-slate-200 font-bold text-sm"
-                      >
-                        -
-                      </button>
-                      <span className="px-4 py-1 text-sm font-bold text-slate-900 bg-white">
-                        {quantity}
-                      </span>
-                      <button
-                        onClick={() => setQuantity(q => Math.min(activeProduct.warehouseStock || 99, q + 1))}
-                        className="px-3 py-1 text-slate-600 hover:bg-slate-200 font-bold text-sm"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
+              {activeProduct.inStock && !priceOnCall ? (() => {
+                const cartItem = cart.find(item => item.product._id === activeProduct._id);
+                const currentCartQty = cartItem ? cartItem.quantity : 0;
 
-                  <button
-                    onClick={() => {
-                      addToCart(effectiveProductForCart, quantity);
-                      onClose();
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white shadow-md shadow-emerald-600/20 transition-all"
-                  >
-                    <ShoppingBag className="w-4 h-4" />
-                    <span>Add {quantity} to Cart ({formatPKR(finalPrice * quantity)})</span>
-                  </button>
-                </>
-              ) : (
+                return currentCartQty > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-slate-800">Quantity in Cart</span>
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-extrabold uppercase">Added</span>
+                      </div>
+                      <div className="flex items-center border border-emerald-300 rounded-xl overflow-hidden bg-emerald-50/50">
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(activeProduct._id, currentCartQty - 1)}
+                          className="px-3.5 py-1 text-emerald-800 hover:bg-rose-600 hover:text-white font-bold text-sm transition-colors"
+                          title="Decrease quantity"
+                        >
+                          -
+                        </button>
+                        <span className="px-4 py-1 text-sm font-extrabold text-emerald-950 bg-white font-mono">
+                          {currentCartQty}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(activeProduct._id, currentCartQty + 1)}
+                          className="px-3.5 py-1 text-emerald-800 hover:bg-emerald-600 hover:text-white font-bold text-sm transition-colors"
+                          title="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        openCart();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white shadow-md shadow-emerald-700/20 transition-all cursor-pointer"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>{currentCartQty} {currentCartQty === 1 ? 'item' : 'items'} already in cart ({formatPKR(finalPrice * currentCartQty)}) • View Cart</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-700">Quantity</span>
+                      <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                        <button
+                          type="button"
+                          onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                          className="px-3 py-1 text-slate-600 hover:bg-slate-200 font-bold text-sm"
+                        >
+                          -
+                        </button>
+                        <span className="px-4 py-1 text-sm font-bold text-slate-900 bg-white font-mono">
+                          {quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const maxAllowed = activeProduct.warehouseStock > 0 ? activeProduct.warehouseStock : 99;
+                            if (quantity + 1 > maxAllowed) {
+                              showStockLimitNotice(activeProduct, maxAllowed);
+                            } else {
+                              setQuantity(q => q + 1);
+                            }
+                          }}
+                          className="px-3 py-1 text-slate-600 hover:bg-slate-200 font-bold text-sm"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        addToCart(effectiveProductForCart, quantity);
+                        onClose();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>Add {quantity} to Cart ({formatPKR(finalPrice * quantity)})</span>
+                    </button>
+                  </>
+                );
+              })() : (
                 <button
                   onClick={handleWhatsAppContact}
                   className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-amber-600 hover:bg-amber-700 active:scale-98 text-white shadow-md transition-all"
