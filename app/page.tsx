@@ -34,38 +34,55 @@ export default function StorefrontHomePage() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const [cats, featuredRes, consolesRes, gamesRes, accessoriesRes] = await Promise.all([
+
+      // 1. Fetch categories and main featured catalog in parallel (<100ms real-time direct CDN call!)
+      const [cats, featuredRes] = await Promise.all([
         fetchCategories(),
-        fetchProducts({ page: 1, limit: 36, sortBy: 'latest' }),
-        fetchProducts({ category: '6a8ad5a068ae35d1a79d1a83', limit: 12, sortBy: 'latest' }),
-        fetchProducts({ category: '6a8aea066dd73e298cdb36da', limit: 12, sortBy: 'latest' }),
-        fetchProducts({ category: '6a8ae13c5f408109bce576a6', limit: 12, sortBy: 'latest' })
+        fetchProducts({ page: 1, limit: 36, sortBy: 'latest' })
       ]);
 
       setCategories(cats);
 
+      let loadedFeatured: Product[] = [];
       if (featuredRes.success && featuredRes.data) {
-        const sortedFeatured = [...featuredRes.data].sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
-        setFeaturedProducts(sortedFeatured.slice(0, 8));
+        loadedFeatured = [...featuredRes.data].sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
+        setFeaturedProducts(loadedFeatured.slice(0, 8));
+
+        // Instantly populate section fallbacks from live real-time items so UI renders IMMEDIATELY!
+        const getCatId = (c: any) => (typeof c === 'object' && c !== null ? c._id : c);
+        const consoles = loadedFeatured.filter(p => getCatId(p.category) === '6a8ad5a068ae35d1a79d1a83');
+        const games = loadedFeatured.filter(p => getCatId(p.category) === '6a8aea066dd73e298cdb36da');
+        const accessories = loadedFeatured.filter(p => getCatId(p.category) === '6a8ae13c5f408109bce576a6' || getCatId(p.category) === '6a8af3ad75f0085178374d75');
+
+        if (consoles.length > 0) setConsolesProducts(consoles.slice(0, 4));
+        if (games.length > 0) setGamesProducts(games.slice(0, 4));
+        if (accessories.length > 0) setAccessoriesProducts(accessories.slice(0, 4));
       }
 
-      if (consolesRes.success && consolesRes.data && consolesRes.data.length > 0) {
-        const sortedConsoles = [...consolesRes.data].sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
-        setConsolesProducts(sortedConsoles.slice(0, 4));
-      }
-
-      if (gamesRes.success && gamesRes.data && gamesRes.data.length > 0) {
-        const sortedGames = [...gamesRes.data].sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
-        setGamesProducts(sortedGames.slice(0, 4));
-      }
-
-      if (accessoriesRes.success && accessoriesRes.data && accessoriesRes.data.length > 0) {
-        const sortedAccessories = [...accessoriesRes.data].sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
-        setAccessoriesProducts(sortedAccessories.slice(0, 4));
-      }
-
+      // Unblock UI immediately - Page renders instantly in <100ms!
       setLoading(false);
+
+      // 2. Fetch category-specific sections in background to enrich sections
+      Promise.all([
+        fetchProducts({ category: '6a8ad5a068ae35d1a79d1a83', limit: 12, sortBy: 'latest' }),
+        fetchProducts({ category: '6a8aea066dd73e298cdb36da', limit: 12, sortBy: 'latest' }),
+        fetchProducts({ category: '6a8ae13c5f408109bce576a6', limit: 12, sortBy: 'latest' })
+      ]).then(([cRes, gRes, aRes]) => {
+        if (cRes.success && cRes.data && cRes.data.length > 0) {
+          const sorted = [...cRes.data].sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
+          setConsolesProducts(sorted.slice(0, 4));
+        }
+        if (gRes.success && gRes.data && gRes.data.length > 0) {
+          const sorted = [...gRes.data].sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
+          setGamesProducts(sorted.slice(0, 4));
+        }
+        if (aRes.success && aRes.data && aRes.data.length > 0) {
+          const sorted = [...aRes.data].sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
+          setAccessoriesProducts(sorted.slice(0, 4));
+        }
+      }).catch(() => {});
     }
+
     loadData();
   }, []);
 

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Product, ProductCondition } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
 import { getProductEffectivePrice, isPriceOnCall } from '@/lib/api';
-import { ShoppingBag, Eye, Check, X, Gamepad2, PhoneCall, Tag, Sparkles } from 'lucide-react';
+import { ShoppingBag, Eye, Check, X, Gamepad2, PhoneCall, Tag, Sparkles, Plus, Minus } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -12,7 +12,10 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
-  const { addToCart } = useCart();
+  const { cart, addToCart, updateQuantity } = useCart();
+
+  const cartItem = cart.find(item => item.product._id === product._id);
+  const cartQty = cartItem ? cartItem.quantity : 0;
 
   const primaryImg = product.images && product.images.length > 0
     ? (product.images.find(img => img.isPrimary)?.url || product.images[0]?.url || '')
@@ -193,7 +196,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             )}
           </div>
 
-          {/* Single Action Button */}
+          {/* Single Action Button OR Quantity Stepper when in cart */}
           {priceOnCall ? (
             <button
               onClick={handleWhatsAppContact}
@@ -210,6 +213,42 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
               <PhoneCall className="w-3.5 h-3.5" />
               Inquire Stock
             </button>
+          ) : cartQty > 0 ? (
+            <div
+              className="w-full py-1 px-1.5 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between shadow-2xs"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateQuantity(product._id, cartQty - 1);
+                }}
+                className="w-7 h-7 rounded-lg bg-white text-emerald-700 hover:bg-rose-600 hover:text-white border border-emerald-200 hover:border-rose-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs font-bold"
+                title="Decrease quantity"
+              >
+                <Minus className="w-3.5 h-3.5" />
+              </button>
+
+              <div className="flex items-center gap-1">
+                <span className="text-xs sm:text-sm font-extrabold text-emerald-950 font-mono">
+                  {cartQty}
+                </span>
+                <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">in cart</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateQuantity(product._id, cartQty + 1);
+                }}
+                className="w-7 h-7 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 flex items-center justify-center transition-all active:scale-95 shadow-2xs font-bold"
+                title="Increase quantity"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => addToCart(effectiveProductForCart)}

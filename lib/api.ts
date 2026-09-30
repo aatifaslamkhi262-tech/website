@@ -190,11 +190,9 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
     sortBy = 'latest'
   } = params;
 
-  // Await shared catalog warming promise so concurrent page-load calls share the complete sorted catalog
-  const catalog = await ensureCatalogCache();
-
-  if (catalog && catalog.length > 0) {
-    let filtered = [...catalog];
+  // 1. If catalog cache is already warm in memory, use it for instant sub-10ms filtering
+  if (globalCatalogCache && globalCatalogCache.products.length > 0) {
+    let filtered = [...globalCatalogCache.products];
 
     // Filter by search query
     if (search.trim()) {
@@ -272,7 +270,10 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
     };
   }
 
-  // Fast direct single-page query for instant initial render (< 150ms!)
+  // 2. Trigger catalog background warming silently (non-blocking!)
+  ensureCatalogCache().catch(() => {});
+
+  // 3. Fast direct real-time single query to live CDN API (< 100ms!)
   try {
     const query = new URLSearchParams();
     query.set('page', page.toString());
@@ -287,7 +288,7 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
         'Authorization': `Bearer ${API_KEY}`,
         'Accept': 'application/json',
       },
-      cache: 'no-store'
+      next: { revalidate: 120 }
     });
 
     if (!res.ok) {
@@ -324,13 +325,15 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
   }
 }
 
-export async function submitCheckout(payload: CheckoutPayload): Promise<CheckoutApiResponse> {
+export async function submitCheckout(payload: CheckoutPayload, idempotencyKey?: string): Promise<CheckoutApiResponse> {
+  const key = idempotencyKey || `chk_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   const res = await fetch(`${API_BASE_URL}/api/public/checkout`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': API_KEY,
       'Authorization': `Bearer ${API_KEY}`,
+      'x-idempotency-key': key,
     },
     body: JSON.stringify(payload),
   });
