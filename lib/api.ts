@@ -1,4 +1,5 @@
 import { ProductsApiResponse, CategoriesApiResponse, CheckoutPayload, CheckoutApiResponse, ProductQueryParams, Category, Product } from './types';
+import { redisGet, redisSet, redisDel } from './redis';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_IMS_API_URL || 'https://pgs-ims.vercel.app';
 const API_KEY = process.env.NEXT_PUBLIC_IMS_API_KEY || 'pgs_ecommerce_secret_key_2026';
@@ -89,7 +90,18 @@ async function ensureCatalogCache(): Promise<Product[]> {
 
   warmingPromise = (async () => {
     try {
-      // Check browser localStorage cache if available for instant warm startup
+      // 1. Check Upstash Redis RAM Cache for Instant sub-10ms response
+      const redisCatalog = await redisGet<Product[]>('pgs:catalog:v1');
+      if (redisCatalog && Array.isArray(redisCatalog) && redisCatalog.length > 0) {
+        globalCatalogCache = {
+          timestamp: Date.now(),
+          products: redisCatalog,
+          categories: globalCatalogCache?.categories || [],
+        };
+        return redisCatalog;
+      }
+
+      // 2. Check browser localStorage cache if available
       if (typeof window !== 'undefined') {
         try {
           const cached = localStorage.getItem('pgs_catalog_cache_v3');
@@ -131,8 +143,10 @@ async function ensureCatalogCache(): Promise<Product[]> {
         allProducts.forEach(p => uniqueMap.set(p._id, p));
         const unique = Array.from(uniqueMap.values());
 
-        // Exclude all products belonging to "REPAIRING PARTS" category
+        // Exclude REPAIRING PARTS and Out-of-Stock products (inStock === false or warehouseStock <= 0)
         const filteredProducts = unique.filter(p => {
+          if (!p.inStock || (p.warehouseStock !== undefined && p.warehouseStock <= 0)) return false;
+
           if (typeof p.category === 'object' && p.category !== null) {
             const catName = (p.category.name || '').toUpperCase();
             if (catName.includes('REPAIR') || p.category._id === '6ab53bed11becccecde93543') return false;
@@ -155,6 +169,9 @@ async function ensureCatalogCache(): Promise<Product[]> {
           products: filteredProducts,
           categories: globalCatalogCache?.categories || []
         };
+
+        // Populate Upstash Redis RAM Cache (45s TTL for real-time freshness)
+        redisSet('pgs:catalog:v1', filteredProducts, 45).catch(() => {});
 
         if (typeof window !== 'undefined') {
           try {
@@ -228,17 +245,11 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
       filtered = filtered.filter(p => getProductEffectivePrice(p) <= maxPrice);
     }
 
-    // Filter inStockOnly
-    if (inStockOnly) {
-      filtered = filtered.filter(p => p.inStock);
-    }
+    // Always filter out of stock items
+    filtered = filtered.filter(p => p.inStock && (p.warehouseStock === undefined || p.warehouseStock > 0));
 
-    // Apply sorting (keeping In-Stock items at top)
+    // Apply sorting
     filtered.sort((a, b) => {
-      if (a.inStock !== b.inStock) {
-        return a.inStock ? -1 : 1;
-      }
-
       const priceA = getProductEffectivePrice(a);
       const priceB = getProductEffectivePrice(b);
 
@@ -301,8 +312,8 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
 
     const json: ProductsApiResponse = await res.json();
     if (json.success && Array.isArray(json.data)) {
-      // Sort single-page in-stock items first
-      const items = [...json.data].sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));
+      // Filter out out-of-stock items
+      const items = json.data.filter(p => p.inStock && (p.warehouseStock === undefined || p.warehouseStock > 0));
       return {
         ...json,
         data: items
@@ -347,8 +358,9 @@ export async function submitCheckout(payload: CheckoutPayload, idempotencyKey?: 
     throw new Error((json as any).error || json.message || `Checkout failed with status ${res.status}`);
   }
 
-  // Clear catalog cache upon order submission
+  // Clear local & Upstash Redis catalog cache upon order submission (0ms real-time sync!)
   globalCatalogCache = null;
+  redisDel('pgs:catalog:v1').catch(() => {});
 
   return json;
 }

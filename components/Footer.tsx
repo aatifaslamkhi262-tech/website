@@ -27,7 +27,7 @@ export const Footer: React.FC = () => {
           {/* Desktop & Tablet: 4 Equal Columns in 1 Line */}
           <div className="hidden md:grid md:grid-cols-4 divide-x divide-slate-800 text-xs font-semibold text-slate-300">
             <div className="flex items-center justify-center gap-2.5 px-3">
-              <Store className="w-4 h-4 text-emerald-400 shrink-0" />
+              <Store className="w-4 h-4 text-blue-400 shrink-0" />
               <div className="truncate">
                 <span className="font-bold text-white">Genuine Stock</span>
                 <span className="text-[11px] text-slate-400 font-normal ml-1.5">• 100% Guaranteed</span>
@@ -35,15 +35,15 @@ export const Footer: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-center gap-2.5 px-3">
-              <Truck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <Truck className="w-4 h-4 text-blue-400 shrink-0" />
               <div className="truncate">
                 <span className="font-bold text-white">Nationwide Dispatch</span>
-                <span className="text-[11px] text-slate-400 font-normal ml-1.5">• Rs 350 Delivery</span>
+                <span className="text-[11px] text-slate-400 font-normal ml-1.5">• Rs 500 Delivery</span>
               </div>
             </div>
 
             <div className="flex items-center justify-center gap-2.5 px-3">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
               <div className="truncate">
                 <span className="font-bold text-white">Grade Verified</span>
                 <span className="text-[11px] text-slate-400 font-normal ml-1.5">• Tested Quality</span>
@@ -51,7 +51,7 @@ export const Footer: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-center gap-2.5 px-3">
-              <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+              <Clock className="w-4 h-4 text-blue-400 shrink-0" />
               <div className="truncate">
                 <span className="font-bold text-white">Serial Tracking</span>
                 <span className="text-[11px] text-slate-400 font-normal ml-1.5">• Warranty Safety</span>
@@ -63,28 +63,28 @@ export const Footer: React.FC = () => {
           <div className="md:hidden overflow-hidden whitespace-nowrap">
             <div className="animate-ticker flex items-center gap-5 text-xs">
               <div className="flex items-center gap-1.5 shrink-0">
-                <Store className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <Store className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="font-bold text-white">Genuine Stock</span>
                 <span className="text-[11px] text-slate-400">• 100% Guaranteed Products</span>
               </div>
               <span className="text-slate-700 shrink-0 font-light">|</span>
 
               <div className="flex items-center gap-1.5 shrink-0">
-                <Truck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <Truck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="font-bold text-white">Nationwide Dispatch</span>
-                <span className="text-[11px] text-slate-400">• Safe Delivery Rs 350</span>
+                <span className="text-[11px] text-slate-400">• Safe Delivery Rs 500</span>
               </div>
               <span className="text-slate-700 shrink-0 font-light">|</span>
 
               <div className="flex items-center gap-1.5 shrink-0">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="font-bold text-white">Grade Verified</span>
                 <span className="text-[11px] text-slate-400">• New, Pre-Owned & Refurbished</span>
               </div>
               <span className="text-slate-700 shrink-0 font-light">|</span>
 
               <div className="flex items-center gap-1.5 shrink-0">
-                <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <Clock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="font-bold text-white">Serial Tracking</span>
                 <span className="text-[11px] text-slate-400">• Recorded for Warranty Safety</span>
               </div>
@@ -92,28 +92,28 @@ export const Footer: React.FC = () => {
 
               {/* Duplicated set for seamless continuous infinite loop */}
               <div className="flex items-center gap-1.5 shrink-0">
-                <Store className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <Store className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="font-bold text-white">Genuine Stock</span>
                 <span className="text-[11px] text-slate-400">• 100% Guaranteed Products</span>
               </div>
               <span className="text-slate-700 shrink-0 font-light">|</span>
 
               <div className="flex items-center gap-1.5 shrink-0">
-                <Truck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <Truck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="font-bold text-white">Nationwide Dispatch</span>
-                <span className="text-[11px] text-slate-400">• Safe Delivery Rs 350</span>
+                <span className="text-[11px] text-slate-400">• Safe Delivery Rs 500</span>
               </div>
               <span className="text-slate-700 shrink-0 font-light">|</span>
 
               <div className="flex items-center gap-1.5 shrink-0">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="font-bold text-white">Grade Verified</span>
                 <span className="text-[11px] text-slate-400">• New, Pre-Owned & Refurbished</span>
               </div>
               <span className="text-slate-700 shrink-0 font-light">|</span>
 
               <div className="flex items-center gap-1.5 shrink-0">
-                <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <Clock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="font-bold text-white">Serial Tracking</span>
                 <span className="text-[11px] text-slate-400">• Recorded for Warranty Safety</span>
               </div>
@@ -129,12 +129,14 @@ export const Footer: React.FC = () => {
           
           {/* Brand Col */}
           <div className="md:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="bg-emerald-600 text-white p-2 rounded-xl shadow-md">
-                <Gamepad2 className="w-6 h-6" />
-              </div>
+            <Link href="/" className="flex items-center gap-3 group">
+              <img
+                src="/logo.png"
+                alt="PGS Game Shop Karachi"
+                className="h-14 w-auto object-contain transition-transform group-hover:scale-105 duration-200"
+              />
               <span className="font-extrabold text-xl tracking-tight text-white font-sans">
-                PGS <span className="text-emerald-400">GAME SHOP</span>
+                PGS <span className="text-blue-400">GAME SHOP</span>
               </span>
             </Link>
             
@@ -143,13 +145,13 @@ export const Footer: React.FC = () => {
             </p>
 
             <div className="flex items-start gap-2 pt-2 text-slate-400 font-medium text-xs leading-relaxed">
-              <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <MapPin className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
               <div>
                 <a
                   href="https://maps.app.goo.gl/USAkWfss1fLZC3mf7"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white hover:text-emerald-400 transition-colors font-semibold underline block"
+                  className="text-white hover:text-blue-400 transition-colors font-semibold underline block"
                 >
                   Shop No. G-14, Grace Shopping Mall, Main Maskan Chowrangi, Gulshan-e-Iqbal Block 4, Karachi
                 </a>
@@ -162,11 +164,11 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <h3 className="font-bold text-white text-sm tracking-wider uppercase">Categories</h3>
             <ul className="space-y-2 text-slate-400 font-medium">
-              <li><Link href="/products?category=6a8ad5a068ae35d1a79d1a83" className="hover:text-emerald-400 transition-colors">Gaming Consoles</Link></li>
-              <li><Link href="/products?category=6a8aea066dd73e298cdb36da" className="hover:text-emerald-400 transition-colors">PS5 & PS4 Game CDs</Link></li>
-              <li><Link href="/products?category=6a8ae13c5f408109bce576a6" className="hover:text-emerald-400 transition-colors">Controllers</Link></li>
-              <li><Link href="/products?category=6a8af3ad75f0085178374d75" className="hover:text-emerald-400 transition-colors">Accessories & Gear</Link></li>
-              <li><Link href="/products?condition=Used" className="hover:text-emerald-400 transition-colors">Pre-Owned Collection</Link></li>
+              <li><Link href="/products?category=6a8ad5a068ae35d1a79d1a83" className="hover:text-blue-400 transition-colors">Gaming Consoles</Link></li>
+              <li><Link href="/products?category=6a8aea066dd73e298cdb36da" className="hover:text-blue-400 transition-colors">PS5 & PS4 Game CDs</Link></li>
+              <li><Link href="/products?category=6a8ae13c5f408109bce576a6" className="hover:text-blue-400 transition-colors">Controllers</Link></li>
+              <li><Link href="/products?category=6a8af3ad75f0085178374d75" className="hover:text-blue-400 transition-colors">Accessories & Gear</Link></li>
+              <li><Link href="/products?condition=Used" className="hover:text-blue-400 transition-colors">Pre-Owned Collection</Link></li>
             </ul>
           </div>
 
@@ -175,15 +177,15 @@ export const Footer: React.FC = () => {
             <h3 className="font-bold text-white text-sm tracking-wider uppercase">Contact & Location</h3>
             <div className="space-y-2 text-slate-400 font-medium text-xs">
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <a href="tel:+923122319157" className="text-white font-mono font-bold hover:text-emerald-400">+92 312 2319157</a>
+                <Phone className="w-4 h-4 text-blue-400 shrink-0" />
+                <a href="tel:+923122319157" className="text-white font-mono font-bold hover:text-blue-400">+92 312 2319157</a>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <a href="tel:+923320329000" className="text-white font-mono font-bold hover:text-emerald-400">+92 332 0329000</a>
+                <Phone className="w-4 h-4 text-blue-400 shrink-0" />
+                <a href="tel:+923320329000" className="text-white font-mono font-bold hover:text-blue-400">+92 332 0329000</a>
               </div>
-              <div className="flex items-center gap-2 pt-1 text-emerald-400 font-semibold">
-                <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="flex items-center gap-2 pt-1 text-blue-400 font-semibold">
+                <Clock className="w-4 h-4 text-blue-400 shrink-0" />
                 <span>Timings: 2:30 PM – 11:30 PM</span>
               </div>
               <div className="pt-2 flex items-center gap-2 flex-wrap">

@@ -67,56 +67,70 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
       
       {/* Aspect Ratio Container */}
       <div className="relative aspect-[16/9] sm:aspect-[24/9] md:aspect-[28/9] min-h-[190px] sm:min-h-[280px]">
-        {SLIDES.map((slide, idx) => (
-          <div
-            key={slide.id}
-            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-              idx === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-            }`}
-          >
-            {/* Background Image */}
-            <img
-              src={slide.image}
-              alt={slide.title}
-              className="w-full h-full object-cover object-center"
-            />
+        {SLIDES.map((slide, idx) => {
+          const isActive = idx === currentSlide;
 
-            {/* Gradient Overlay for Crisp Text Contrast */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/75 to-transparent p-4 sm:p-8 md:p-10 flex flex-col justify-center max-w-2xl">
-              
-              {/* Badge */}
-              <div className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 text-[9px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30 mb-1 sm:mb-2 w-fit backdrop-blur-xs">
-                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {slide.badge}
+          return (
+            <div
+              key={slide.id}
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+              }`}
+            >
+              {/* Background Image with Ken-Burns Zoom FX */}
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className={`w-full h-full object-cover object-center transition-transform duration-[6000ms] ease-out ${
+                  isActive ? 'scale-100' : 'scale-110'
+                }`}
+              />
+
+              {/* Gradient Overlay for Crisp Text Contrast */}
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/75 to-transparent p-4 sm:p-8 md:p-10 flex flex-col justify-center max-w-2xl">
+                
+                {/* Badge */}
+                <div className={`inline-flex items-center gap-1.5 bg-blue-500/20 text-blue-300 text-[9px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-500/30 mb-1 sm:mb-2 w-fit backdrop-blur-xs transition-all duration-500 ${
+                  isActive ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+                }`}>
+                  <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {slide.badge}
+                </div>
+
+                {/* Title */}
+                <h2 className={`text-base sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-snug sm:leading-tight mb-1 sm:mb-2 drop-shadow-sm line-clamp-2 transition-all duration-500 delay-100 ${
+                  isActive ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+                }`}>
+                  {slide.title}
+                </h2>
+
+                {/* Subtitle */}
+                <p className={`text-[11px] sm:text-sm text-slate-300 font-normal line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-4 max-w-xl transition-all duration-500 delay-200 ${
+                  isActive ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+                }`}>
+                  {slide.subtitle}
+                </p>
+
+                {/* CTA Button */}
+                <Link
+                  href={slide.link}
+                  onClick={(e) => {
+                    const filterSection = document.getElementById('category-filter-section');
+                    if (filterSection) {
+                      filterSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className={`inline-flex items-center gap-1.5 bg-[#0070D1] hover:bg-blue-700 active:scale-98 text-white font-bold text-[11px] sm:text-sm px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl shadow-md w-fit transition-all duration-500 delay-300 cursor-pointer z-20 ${
+                    isActive ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                  }`}
+                >
+                  <span>{slide.ctaText}</span>
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </Link>
+
               </div>
-
-              {/* Title */}
-              <h2 className="text-base sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-snug sm:leading-tight mb-1 sm:mb-2 drop-shadow-sm line-clamp-2">
-                {slide.title}
-              </h2>
-
-              {/* Subtitle */}
-              <p className="text-[11px] sm:text-sm text-slate-300 font-normal line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-4 max-w-xl">
-                {slide.subtitle}
-              </p>
-
-              {/* CTA Button */}
-              <Link
-                href={slide.link}
-                onClick={(e) => {
-                  const filterSection = document.getElementById('category-filter-section');
-                  if (filterSection) {
-                    filterSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-[11px] sm:text-sm px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl shadow-md w-fit transition-all cursor-pointer z-20"
-              >
-                <span>{slide.ctaText}</span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </Link>
-
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Navigation Arrows */}
@@ -146,7 +160,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
             type="button"
             onClick={() => setCurrentSlide(idx)}
             className={`h-2 rounded-full transition-all cursor-pointer ${
-              idx === currentSlide ? 'w-6 bg-emerald-500' : 'w-2 bg-white/50 hover:bg-white'
+              idx === currentSlide ? 'w-6 bg-[#0070D1]' : 'w-2 bg-white/50 hover:bg-white'
             }`}
           />
         ))}

@@ -13,6 +13,14 @@ interface StockLimitModalProps {
 }
 
 export const StockLimitModal: React.FC<StockLimitModalProps> = ({ stockInfo, onClose }) => {
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && stockInfo) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [stockInfo, onClose]);
+
   if (!stockInfo) return null;
 
   const { product, availableStock } = stockInfo;

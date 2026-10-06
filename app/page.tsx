@@ -15,6 +15,7 @@ import { fetchCategories, fetchProducts } from '@/lib/api';
 import { Product, Category, CheckoutResponseData } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
 import { Store, ShieldCheck, Truck, ArrowRight, Sparkles, Award } from 'lucide-react';
+import { VisualCategoryShowcase } from '@/components/VisualCategoryShowcase';
 
 export default function StorefrontHomePage() {
   const { openCart } = useCart();
@@ -113,7 +114,7 @@ export default function StorefrontHomePage() {
             <div className="flex items-center justify-center gap-2.5 px-3">
               <Truck className="w-4 h-4 text-emerald-600 shrink-0" />
               <div className="truncate">
-                <span className="font-bold text-slate-900">Nationwide Shipping (Rs 350)</span>
+                <span className="font-bold text-slate-900">Nationwide Shipping (Rs 500)</span>
                 <span className="text-[11px] text-slate-500 font-normal ml-1.5">• Insured Dispatch</span>
               </div>
             </div>
@@ -140,7 +141,7 @@ export default function StorefrontHomePage() {
               <div className="flex items-center gap-1.5 shrink-0">
                 <Truck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span className="font-bold text-slate-900">Nationwide Dispatch</span>
-                <span className="text-[11px] text-slate-500">• Insured Delivery (Rs 350)</span>
+                <span className="text-[11px] text-slate-500">• Insured Delivery (Rs 500)</span>
               </div>
               <span className="text-slate-300 shrink-0 font-light">|</span>
 
@@ -162,7 +163,7 @@ export default function StorefrontHomePage() {
               <div className="flex items-center gap-1.5 shrink-0">
                 <Truck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span className="font-bold text-slate-900">Nationwide Dispatch</span>
-                <span className="text-[11px] text-slate-500">• Insured Delivery (Rs 350)</span>
+                <span className="text-[11px] text-slate-500">• Insured Delivery (Rs 500)</span>
               </div>
               <span className="text-slate-300 shrink-0 font-light">|</span>
 
@@ -175,6 +176,9 @@ export default function StorefrontHomePage() {
             </div>
           </div>
         </div>
+
+        {/* 3D Visual Category Showcase */}
+        <VisualCategoryShowcase />
 
         {/* Section 1: Featured In-Stock Gaming Products */}
         <section className="space-y-4">

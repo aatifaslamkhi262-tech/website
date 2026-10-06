@@ -1,10 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @layer base {
   body {
     background-color: #F8FAFC;
     color: #0F172A;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
 }
@@ -53,4 +54,37 @@
 .animate-ticker:hover {
   animation-play-state: paused;
 }
+
+/* Creative Flying Cart Item Animation */
+@keyframes flyToCartKeyframes {
+  0% {
+    transform: translate(var(--start-x), var(--start-y)) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(calc(var(--start-x) + var(--delta-x) * 0.5), calc(var(--start-y) + var(--delta-y) * 0.3 - 60px)) scale(0.7) rotate(180deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(calc(var(--start-x) + var(--delta-x)), calc(var(--start-y) + var(--delta-y))) scale(0.15) rotate(360deg);
+    opacity: 0.2;
+  }
+}
+
+.animate-fly-to-cart {
+  animation: flyToCartKeyframes 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Cart Icon Bump Bounce */
+@keyframes cartBumpKeyframes {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.35) rotate(-6deg); }
+  60% { transform: scale(1.15) rotate(6deg); }
+  100% { transform: scale(1); }
+}
+
+.animate-cart-bump {
+  animation: cartBumpKeyframes 0.4s ease-in-out;
+}
+
 

@@ -55,7 +55,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         {onResetFilters && (
           <button
             onClick={onResetFilters}
-            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-2xs transition-all"
+            className="inline-flex items-center gap-2 bg-[#0070D1] hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-2xs transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Reset Filters
           </button>
@@ -84,7 +84,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           onClick={() => onPageChange(1)}
           className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
             current === 1
-              ? 'bg-emerald-600 text-white shadow-2xs'
+              ? 'bg-[#0070D1] text-white shadow-2xs'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
@@ -103,7 +103,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           onClick={() => onPageChange(p)}
           className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
             current === p
-              ? 'bg-emerald-600 text-white shadow-2xs'
+              ? 'bg-[#0070D1] text-white shadow-2xs'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
@@ -122,7 +122,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           onClick={() => onPageChange(totalPages)}
           className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
             current === totalPages
-              ? 'bg-emerald-600 text-white shadow-2xs'
+              ? 'bg-[#0070D1] text-white shadow-2xs'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >

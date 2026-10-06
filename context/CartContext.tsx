@@ -3,10 +3,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, CartItem } from '@/lib/types';
 import { StockLimitModal } from '@/components/StockLimitModal';
+import { triggerFlyToCart } from '@/components/FlyingCartAnimation';
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
+  addToCart: (product: Product, quantity?: number, sourceEl?: HTMLElement | null) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -21,7 +22,7 @@ interface CartContextType {
   showStockLimitNotice: (product: Product, availableStock: number) => void;
 }
 
-const SHIPPING_FEE = 350;
+const SHIPPING_FEE = 500;
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -59,8 +60,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cart, isInitialized]);
 
-  const addToCart = (product: Product, quantity: number = 1) => {
+  const addToCart = (product: Product, quantity: number = 1, sourceEl?: HTMLElement | null) => {
     if (!product.inStock) return;
+
+    // Trigger visual floating animation & sound effect!
+    triggerFlyToCart(product, sourceEl);
 
     const maxAllowed = product.warehouseStock > 0 ? product.warehouseStock : 99;
 
@@ -84,7 +88,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return [...prev, { product, quantity: Math.min(quantity, maxAllowed) }];
     });
 
-    setIsCartOpen(true);
+    // Open cart drawer after animation lands
+    setTimeout(() => {
+      setIsCartOpen(true);
+    }, 450);
   };
 
   const removeFromCart = (productId: string) => {

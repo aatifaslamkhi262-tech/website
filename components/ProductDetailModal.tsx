@@ -19,13 +19,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   const [selectedImg, setSelectedImg] = useState<string | null>(null);
   const [hasImgError, setHasImgError] = useState<boolean>(false);
 
-  // Sync activeProduct when initial product prop changes
+  // Sync activeProduct when initial product prop changes & listen for Escape key
   useEffect(() => {
     setActiveProduct(product);
     setQuantity(1);
     setSelectedImg(null);
     setHasImgError(false);
-  }, [product]);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [product, onClose]);
 
   if (!activeProduct) return null;
 
@@ -121,7 +127,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               {/* Badges Overlay */}
               <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5 flex-wrap max-w-[85%]">
                 {activeProduct.condition === 'New' && (
-                  <span className="bg-emerald-600 text-white font-bold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full shadow-2xs">
+                  <span className="bg-[#0070D1] text-white font-bold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full shadow-2xs">
                     New
                   </span>
                 )}
@@ -179,7 +185,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                       setHasImgError(false);
                     }}
                     className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border-2 transition-all p-1 bg-white shrink-0 ${
-                      currentImage === img.url ? 'border-emerald-600 shadow-2xs' : 'border-slate-200 opacity-60 hover:opacity-100'
+                      currentImage === img.url ? 'border-[#0070D1] shadow-2xs' : 'border-slate-200 opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={img.url} alt="" className="w-full h-full object-contain" />
@@ -193,8 +199,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
           <div className="p-4 sm:p-6 flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-1">
-                <Tag className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-700 font-bold">{activeProduct.brand || 'PGS Official'}</span>
+                <Tag className="w-3.5 h-3.5 text-[#0070D1]" />
+                <span className="text-[#0070D1] font-bold">{activeProduct.brand || 'PGS Official'}</span>
                 <span>•</span>
                 <span>{categoryName}</span>
               </div>
@@ -207,7 +213,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               {uniqueConditionVariants.length > 1 && (
                 <div className="mb-3.5 bg-slate-50 p-2.5 sm:p-3 rounded-2xl border border-slate-200/80 space-y-2">
                   <span className="text-[11px] sm:text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> Select Condition / Grade Variant:
+                    <Sparkles className="w-3.5 h-3.5 text-[#0070D1]" /> Select Condition / Grade Variant:
                   </span>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {uniqueConditionVariants.map(v => {
@@ -228,9 +234,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                               : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
                           }`}
                         >
-                          {isSelected && <Check className="w-3 h-3 text-emerald-400" />}
+                          {isSelected && <Check className="w-3 h-3 text-blue-400" />}
                           <span>{v.condition}</span>
-                          <span className={isSelected ? 'text-emerald-400 font-mono text-[11px]' : 'text-slate-500 font-mono text-[11px]'}>
+                          <span className={isSelected ? 'text-blue-400 font-mono text-[11px]' : 'text-slate-500 font-mono text-[11px]'}>
                             ({vPrice > 0 ? formatPKR(vPrice) : 'Call'})
                           </span>
                         </button>
@@ -254,7 +260,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                           {formatPKR(originalPrice)}
                         </span>
                       )}
-                      <span className="text-xl sm:text-2xl font-extrabold text-emerald-700 tracking-tight leading-none">
+                      <span className="text-xl sm:text-2xl font-extrabold text-[#0070D1] tracking-tight leading-none">
                         {formatPKR(finalPrice)}
                       </span>
                     </div>
@@ -262,8 +268,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 </div>
 
                 {activeProduct.inStock ? (
-                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 font-bold text-[11px] sm:text-xs px-2.5 py-1 rounded-full border border-emerald-200 shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> In Stock ({activeProduct.warehouseStock})
+                  <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-900 font-bold text-[11px] sm:text-xs px-2.5 py-1 rounded-full border border-blue-200 shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0070D1]" /> In Stock ({activeProduct.warehouseStock})
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-800 font-bold text-[11px] sm:text-xs px-2.5 py-1 rounded-full border border-rose-200 shrink-0">
@@ -292,7 +298,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                   </div>
                 )}
                 {activeProduct.serialTracking && (
-                  <div className="flex items-center justify-between text-emerald-700 bg-emerald-50/80 px-2 py-0.5 rounded-md mt-1">
+                  <div className="flex items-center justify-between text-blue-900 bg-blue-50/80 px-2 py-0.5 rounded-md mt-1">
                     <span>Serial Tracking:</span>
                     <span className="font-bold">Enabled for Warranty</span>
                   </div>
@@ -311,24 +317,24 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <span className="text-xs font-bold text-slate-800">Quantity in Cart</span>
-                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-extrabold uppercase">Added</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-900 px-2 py-0.5 rounded-full font-extrabold uppercase">Added</span>
                       </div>
-                      <div className="flex items-center border border-emerald-300 rounded-xl overflow-hidden bg-emerald-50/50">
+                      <div className="flex items-center border border-blue-300 rounded-xl overflow-hidden bg-blue-50/50">
                         <button
                           type="button"
                           onClick={() => updateQuantity(activeProduct._id, currentCartQty - 1)}
-                          className="px-3.5 py-1 text-emerald-800 hover:bg-rose-600 hover:text-white font-bold text-sm transition-colors"
+                          className="px-3.5 py-1 text-blue-900 hover:bg-rose-600 hover:text-white font-bold text-sm transition-colors"
                           title="Decrease quantity"
                         >
                           -
                         </button>
-                        <span className="px-4 py-1 text-sm font-extrabold text-emerald-950 bg-white font-mono">
+                        <span className="px-4 py-1 text-sm font-extrabold text-blue-950 bg-white font-mono">
                           {currentCartQty}
                         </span>
                         <button
                           type="button"
                           onClick={() => updateQuantity(activeProduct._id, currentCartQty + 1)}
-                          className="px-3.5 py-1 text-emerald-800 hover:bg-emerald-600 hover:text-white font-bold text-sm transition-colors"
+                          className="px-3.5 py-1 text-blue-900 hover:bg-[#0070D1] hover:text-white font-bold text-sm transition-colors"
                           title="Increase quantity"
                         >
                           +
@@ -342,7 +348,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                         onClose();
                         openCart();
                       }}
-                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white shadow-md shadow-emerald-700/20 transition-all cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#0070D1] hover:bg-blue-700 active:scale-98 text-white shadow-md shadow-blue-700/20 transition-all cursor-pointer"
                     >
                       <ShoppingBag className="w-4 h-4" />
                       <span>{currentCartQty} {currentCartQty === 1 ? 'item' : 'items'} already in cart ({formatPKR(finalPrice * currentCartQty)}) • View Cart</span>
@@ -382,11 +388,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
                     <button
                       type="button"
-                      onClick={() => {
-                        addToCart(effectiveProductForCart, quantity);
+                      onClick={(e) => {
+                        addToCart(effectiveProductForCart, quantity, e.currentTarget);
                         onClose();
                       }}
-                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#0070D1] hover:bg-blue-700 active:scale-98 text-white shadow-md shadow-blue-600/20 transition-all cursor-pointer"
                     >
                       <ShoppingBag className="w-4 h-4" />
                       <span>Add {quantity} to Cart ({formatPKR(finalPrice * quantity)})</span>

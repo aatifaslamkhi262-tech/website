@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { FloatingWhatsApp } from '@/components/FloatingWhatsApp';
+import { FlyingCartAnimationContainer } from '@/components/FlyingCartAnimation';
 
 export const metadata: Metadata = {
   title: 'PGS Game Shop | Official Retail Store',
@@ -21,12 +22,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full bg-slate-50">
-      <body className="h-full flex flex-col antialiased text-slate-900 selection:bg-emerald-500 selection:text-white">
+      <body className="h-full flex flex-col antialiased text-slate-900 selection:bg-[#0070D1] selection:text-white">
         <CartProvider>
           {children}
           <FloatingWhatsApp />
+          <FlyingCartAnimationContainer />
         </CartProvider>
       </body>
     </html>
   );
 }
+

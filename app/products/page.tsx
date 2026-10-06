@@ -15,6 +15,7 @@ import { fetchCategories, fetchProducts } from '@/lib/api';
 import { Product, Category, ProductCondition, PaginationMeta, CheckoutResponseData } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
 import { SlidersHorizontal, PackageSearch } from 'lucide-react';
+import { VisualCategoryShowcase } from '@/components/VisualCategoryShowcase';
 
 function CatalogContent() {
   const searchParams = useSearchParams();
@@ -175,6 +176,14 @@ function CatalogContent() {
           <p className="text-xs sm:text-sm text-slate-500 font-normal">
             Browse 600+ gaming consoles, CDs, controllers, and accessories with instant stock verification.
           </p>
+        </div>
+
+        {/* 3D Visual Category Cards Showcase */}
+        <div className="mb-6">
+          <VisualCategoryShowcase
+            onCategoryClick={handleCategorySelect}
+            selectedCategory={selectedCategory}
+          />
         </div>
 
         {/* Filter Toolbar Section */}

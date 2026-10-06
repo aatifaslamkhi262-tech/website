@@ -32,16 +32,23 @@ export default function AboutPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 space-y-12">
         
         {/* Page Hero Banner */}
-        <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200/80 shadow-xs space-y-4">
-          <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200/60">
-            <Store className="w-3.5 h-3.5 text-emerald-600" /> PGS Game Shop • Premier Gaming Hub
+        <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-4 max-w-3xl">
+            <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-900 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200/60">
+              <Store className="w-3.5 h-3.5 text-[#0070D1]" /> PGS Game Shop • Premier Gaming Hub
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
+              Pakistan's Premier Gaming Retailer & Direct Distribution
+            </h1>
+            <p className="text-sm sm:text-base text-slate-600 font-normal leading-relaxed">
+              Connecting retail customers and gaming enthusiasts across Pakistan directly to our central inventory with live stock verification.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight max-w-3xl">
-            Pakistan's Premier Gaming Retailer & Direct Distribution
-          </h1>
-          <p className="text-sm sm:text-base text-slate-600 font-normal leading-relaxed max-w-2xl">
-            Connecting retail customers and gaming enthusiasts across Pakistan directly to our central inventory with live stock verification.
-          </p>
+          <img
+            src="/logo.png"
+            alt="PGS Game Shop Karachi"
+            className="h-28 sm:h-36 w-auto object-contain shrink-0 drop-shadow-md"
+          />
         </div>
 
         {/* 3 Value Columns */}
@@ -72,7 +79,7 @@ export default function AboutPage() {
             </div>
             <h3 className="font-bold text-slate-900 text-lg">Fast Nationwide Dispatch</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Standard flat Rs 350 delivery across Islamabad, Rawalpindi, Lahore, Karachi, Peshawar, and all major cities in Pakistan with insured packing.
+              Standard flat Rs 500 delivery across Islamabad, Rawalpindi, Lahore, Karachi, Peshawar, and all major cities in Pakistan with insured packing.
             </p>
           </div>
         </div>

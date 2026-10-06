@@ -23,7 +23,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
           onClick={() => onTabSelect('home')}
           className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all ${
             activeTab === 'home'
-              ? 'text-emerald-600 bg-emerald-50 font-semibold'
+              ? 'text-[#0070D1] bg-blue-50 font-semibold'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -36,7 +36,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
           onClick={() => onTabSelect('categories')}
           className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all ${
             activeTab === 'categories'
-              ? 'text-emerald-600 bg-emerald-50 font-semibold'
+              ? 'text-[#0070D1] bg-blue-50 font-semibold'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -49,7 +49,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
           onClick={() => onTabSelect('search')}
           className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all ${
             activeTab === 'search'
-              ? 'text-emerald-600 bg-emerald-50 font-semibold'
+              ? 'text-[#0070D1] bg-blue-50 font-semibold'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -59,17 +59,18 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ activeTab, onT
 
         {/* Cart Tab with Badge */}
         <button
+          id="mobile-cart-btn"
           onClick={() => onTabSelect('cart')}
           className={`relative flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all ${
             activeTab === 'cart'
-              ? 'text-emerald-600 bg-emerald-50 font-semibold'
+              ? 'text-[#0070D1] bg-blue-50 font-semibold'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <div className="relative">
             <ShoppingBag className="w-5 h-5 mb-0.5" />
             {totalItemsCount > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-emerald-600 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+              <span className="absolute -top-1.5 -right-2 bg-[#0070D1] text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
                 {totalItemsCount}
               </span>
             )}
