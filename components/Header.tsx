@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Search, ShoppingBag, Gamepad2, Phone, X, Check, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { fetchProducts, getProductEffectivePrice } from '@/lib/api';
+import { fetchProducts, getProductEffectivePrice, getProductSlug } from '@/lib/api';
 import { Product } from '@/lib/types';
 
 interface HeaderProps {
@@ -160,7 +160,7 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
     if (onSelectProduct) {
       onSelectProduct(product);
     } else {
-      router.push(`/products?search=${encodeURIComponent(product.name)}`);
+      router.push(`/products/${getProductSlug(product)}`);
     }
   };
 

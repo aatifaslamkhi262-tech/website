@@ -66,7 +66,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
     <div className="relative w-full rounded-3xl overflow-hidden shadow-lg border border-slate-200/80 mb-6 bg-slate-900 group">
       
       {/* Aspect Ratio Container */}
-      <div className="relative aspect-[16/9] sm:aspect-[24/9] md:aspect-[28/9] min-h-[190px] sm:min-h-[280px]">
+      <div className="relative aspect-[16/9] sm:aspect-[20/9] lg:aspect-[22/9] min-h-[210px] sm:min-h-[340px]">
         {SLIDES.map((slide, idx) => {
           const isActive = idx === currentSlide;
 
@@ -81,8 +81,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
               <img
                 src={slide.image}
                 alt={slide.title}
-                className={`w-full h-full object-cover object-center transition-transform duration-[6000ms] ease-out ${
-                  isActive ? 'scale-100' : 'scale-110'
+                className={`w-full h-full object-cover object-right sm:object-center transition-transform duration-[6000ms] ease-out ${
+                  isActive ? 'scale-100' : 'scale-105'
                 }`}
               />
 

@@ -60,8 +60,8 @@ export async function fetchCategories(): Promise<Category[]> {
     const json: CategoriesApiResponse = await res.json();
     if (json.success && Array.isArray(json.data)) {
       const cleanCategories = json.data.filter(c => {
-        const name = (c.name || '').toUpperCase();
-        return !name.includes('REPAIR') && c._id !== '6ab53bed11becccecde93543';
+        const name = (c.name || '').toUpperCase().trim();
+        return !name.includes('REPAIR') && name !== 'OTHER' && c._id !== '6ab53bed11becccecde93543' && c._id !== '6ac799f43d321e0959cefdce';
       });
 
       if (globalCatalogCache) {
@@ -143,15 +143,16 @@ async function ensureCatalogCache(): Promise<Product[]> {
         allProducts.forEach(p => uniqueMap.set(p._id, p));
         const unique = Array.from(uniqueMap.values());
 
-        // Exclude REPAIRING PARTS and Out-of-Stock products (inStock === false or warehouseStock <= 0)
+        // Exclude REPAIRING PARTS, 'other' category, and Out-of-Stock products (inStock === false or warehouseStock <= 0)
         const filteredProducts = unique.filter(p => {
           if (!p.inStock || (p.warehouseStock !== undefined && p.warehouseStock <= 0)) return false;
 
           if (typeof p.category === 'object' && p.category !== null) {
-            const catName = (p.category.name || '').toUpperCase();
-            if (catName.includes('REPAIR') || p.category._id === '6ab53bed11becccecde93543') return false;
+            const catName = (p.category.name || '').toUpperCase().trim();
+            if (catName.includes('REPAIR') || catName === 'OTHER' || p.category._id === '6ab53bed11becccecde93543' || p.category._id === '6ac799f43d321e0959cefdce') return false;
           } else if (typeof p.category === 'string') {
-            if (p.category === '6ab53bed11becccecde93543' || p.category.toUpperCase().includes('REPAIR')) return false;
+            const catStr = p.category.toUpperCase().trim();
+            if (catStr === '6ab53bed11becccecde93543' || catStr === '6ac799f43d321e0959cefdce' || catStr.includes('REPAIR') || catStr === 'OTHER') return false;
           }
           return true;
         });
@@ -363,4 +364,65 @@ export async function submitCheckout(payload: CheckoutPayload, idempotencyKey?: 
   redisDel('pgs:catalog:v1').catch(() => {});
 
   return json;
+}
+
+export function slugify(text: string): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+}
+
+export function getProductSlug(product: Product): string {
+  if (!product) return '';
+  const cleanName = slugify(product.name);
+  if (product._id) {
+    return `${cleanName}-${product._id}`;
+  }
+  return cleanName;
+}
+
+export async function fetchProductBySlug(slugParam: string): Promise<Product | null> {
+  if (!slugParam) return null;
+  const decoded = decodeURIComponent(slugParam).trim();
+
+  // 1. Check if slug contains 24-character Mongo ID at the end
+  const matchId = decoded.match(/([a-f0-9]{24})$/i);
+  const targetId = matchId ? matchId[1] : '';
+
+  const res = await fetchProducts({ limit: 500 });
+  if (!res.success || !res.data) return null;
+
+  const products = res.data;
+
+  // Match by Mongo ID
+  if (targetId) {
+    const foundById = products.find(p => p._id === targetId);
+    if (foundById) return foundById;
+  }
+
+  // Match by direct ID match
+  const foundDirectId = products.find(p => p._id === decoded);
+  if (foundDirectId) return foundDirectId;
+
+  // Match by SKU
+  const foundBySku = products.find(p => p.sku && (p.sku.toLowerCase() === decoded.toLowerCase() || slugify(p.sku) === decoded.toLowerCase()));
+  if (foundBySku) return foundBySku;
+
+  // Match by Name Slug
+  const targetSlug = slugify(decoded);
+  const foundByName = products.find(p => {
+    const pSlug = slugify(p.name);
+    return pSlug === targetSlug || getProductSlug(p) === decoded || targetSlug.includes(pSlug) || pSlug.includes(targetSlug);
+  });
+
+  if (foundByName) return foundByName;
+
+  return products[0] || null;
 }

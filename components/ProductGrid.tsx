@@ -147,7 +147,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
       {/* Pagination Bar */}
       {pagination.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-200/80">
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
             Showing <span className="font-bold text-slate-900">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
             <span className="font-bold text-slate-900">
               {Math.min(pagination.page * pagination.limit, pagination.total)}
@@ -155,11 +155,38 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             of <span className="font-bold text-slate-900">{pagination.total}</span> products
           </p>
 
-          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+          {/* MOBILE VIEW: Clean Single-Line Compact Bar (No Wrapping) */}
+          <div className="flex sm:hidden items-center justify-between gap-2 w-full bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs">
             <button
               onClick={() => onPageChange(pagination.page - 1)}
               disabled={pagination.page <= 1}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs"
+              className="flex-1 inline-flex items-center justify-center gap-1 py-2 px-3 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 disabled:opacity-35 disabled:cursor-not-allowed transition-all active:scale-95"
+            >
+              <ChevronLeft className="w-4 h-4" /> Prev
+            </button>
+
+            <div className="px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-mono font-bold tracking-tight shadow-xs flex items-center gap-1 transition-transform duration-150 active:scale-95 shrink-0">
+              <span>Page</span>
+              <span className="text-blue-400 font-extrabold">{pagination.page}</span>
+              <span className="text-slate-400 font-normal">of</span>
+              <span>{pagination.totalPages}</span>
+            </div>
+
+            <button
+              onClick={() => onPageChange(pagination.page + 1)}
+              disabled={pagination.page >= pagination.totalPages}
+              className="flex-1 inline-flex items-center justify-center gap-1 py-2 px-3 rounded-xl text-xs font-bold bg-[#0070D1] text-white hover:bg-blue-700 disabled:opacity-35 disabled:cursor-not-allowed transition-all active:scale-95 shadow-2xs"
+            >
+              Next <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* DESKTOP VIEW: Full Number Pagination Bar */}
+          <div className="hidden sm:flex items-center gap-1.5">
+            <button
+              onClick={() => onPageChange(pagination.page - 1)}
+              disabled={pagination.page <= 1}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" /> Prev
             </button>
@@ -169,7 +196,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             <button
               onClick={() => onPageChange(pagination.page + 1)}
               disabled={pagination.page >= pagination.totalPages}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
             >
               Next <ChevronRight className="w-4 h-4" />
             </button>

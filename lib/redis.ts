@@ -3,13 +3,17 @@ const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAABISfAAIgcDF
 
 /**
  * Direct Ultra-Fast Upstash Redis REST Client (sub-10ms response)
+ * Uses HTTP POST body payload to prevent URL length / HTTP/2 frameError limits on large JSON catalogs.
  */
 export async function redisGet<T = any>(key: string): Promise<T | null> {
   try {
-    const res = await fetch(`${REDIS_URL}/get/${key}`, {
+    const res = await fetch(REDIS_URL, {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${REDIS_TOKEN}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(['GET', key]),
       cache: 'no-store',
     });
 
@@ -26,7 +30,7 @@ export async function redisGet<T = any>(key: string): Promise<T | null> {
     }
     return json.result as T;
   } catch (err) {
-    console.error(`Upstash Redis GET error for key [${key}]:`, err);
+    // Silent failover - fallback to memory cache seamlessly
     return null;
   }
 }
@@ -34,11 +38,13 @@ export async function redisGet<T = any>(key: string): Promise<T | null> {
 export async function redisSet(key: string, value: any, ttlSeconds: number = 45): Promise<boolean> {
   try {
     const valString = typeof value === 'string' ? value : JSON.stringify(value);
-    const res = await fetch(`${REDIS_URL}/set/${key}/${encodeURIComponent(valString)}?EX=${ttlSeconds}`, {
+    const res = await fetch(REDIS_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${REDIS_TOKEN}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(['SET', key, valString, 'EX', ttlSeconds]),
       cache: 'no-store',
     });
 
@@ -46,18 +52,20 @@ export async function redisSet(key: string, value: any, ttlSeconds: number = 45)
     const json = await res.json();
     return json.result === 'OK';
   } catch (err) {
-    console.error(`Upstash Redis SET error for key [${key}]:`, err);
+    // Silent failover
     return false;
   }
 }
 
 export async function redisDel(key: string): Promise<boolean> {
   try {
-    const res = await fetch(`${REDIS_URL}/del/${key}`, {
+    const res = await fetch(REDIS_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${REDIS_TOKEN}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(['DEL', key]),
       cache: 'no-store',
     });
 
@@ -65,7 +73,7 @@ export async function redisDel(key: string): Promise<boolean> {
     const json = await res.json();
     return typeof json.result === 'number' && json.result > 0;
   } catch (err) {
-    console.error(`Upstash Redis DEL error for key [${key}]:`, err);
+    // Silent failover
     return false;
   }
 }

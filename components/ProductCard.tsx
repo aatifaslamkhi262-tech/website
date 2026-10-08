@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Product, ProductCondition } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
-import { getProductEffectivePrice, isPriceOnCall } from '@/lib/api';
+import { getProductEffectivePrice, isPriceOnCall, getProductSlug } from '@/lib/api';
 import { ShoppingBag, Eye, Check, X, Gamepad2, PhoneCall, Tag, Sparkles, Plus, Minus } from 'lucide-react';
 
 interface ProductCardProps {
@@ -102,9 +103,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
       )}
 
       {/* Top Media Container */}
-      <div
-        className="relative w-full aspect-[4/3] bg-slate-50/80 p-3 sm:p-4 flex items-center justify-center cursor-pointer border-b border-slate-100 overflow-hidden"
-        onClick={() => onQuickView?.(product)}
+      <Link
+        href={`/products/${getProductSlug(product)}`}
+        className="relative w-full aspect-[4/3] bg-slate-50/80 p-3 sm:p-4 flex items-center justify-center cursor-pointer border-b border-slate-100 overflow-hidden block"
       >
         {/* Grade Badge Overlay (Top Left) */}
         <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1">
@@ -130,12 +131,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
 
         {/* Quick View Button */}
         <button
+          type="button"
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             onQuickView?.(product);
           }}
           className="absolute top-2.5 right-2.5 z-10 bg-white/95 hover:bg-white text-slate-700 hover:text-[#0070D1] p-1.5 rounded-xl shadow-xs opacity-0 group-hover:opacity-100 transition-all border border-slate-200 hidden sm:block active:scale-95"
-          title="Quick View"
+          title="Quick View Modal"
         >
           <Eye className="w-3.5 h-3.5" />
         </button>
@@ -159,7 +162,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             </span>
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Card Info Section */}
       <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2.5">
@@ -171,13 +174,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           </div>
 
           {/* Title */}
-          <h3
-            onClick={() => onQuickView?.(product)}
-            className="font-bold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-[#0070D1] cursor-pointer transition-colors"
+          <Link
+            href={`/products/${getProductSlug(product)}`}
+            className="font-bold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-[#0070D1] cursor-pointer transition-colors block"
             title={product.name}
           >
             {product.name}
-          </h3>
+          </Link>
         </div>
 
         {/* Price & Action CTA Row */}
