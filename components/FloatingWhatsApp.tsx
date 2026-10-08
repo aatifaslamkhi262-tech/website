@@ -33,7 +33,7 @@ export const FloatingWhatsApp: React.FC<FloatingWhatsAppProps> = ({ hide = false
 
         {/* Label (Desktop Only) */}
         <span className="hidden sm:inline-block font-extrabold text-xs tracking-wide pr-1">
-          Need Help? Chat Now
+          Need Help? Whatsapp Now
         </span>
       </button>
     </div>
