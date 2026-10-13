@@ -21,10 +21,10 @@ function HeaderNavLinks({ pathname, searchQuery }: { pathname: string; searchQue
   const search = (searchParams?.get('search') || searchQuery || '').toLowerCase();
 
   const isHomeActive = pathname === '/';
-  const isConsolesActive = pathname === '/products' && (cat === '6a8ad5a068ae35d1a79d1a83' || cat.includes('console') || search.includes('console'));
-  const isGamesActive = pathname === '/products' && (cat === '6a8aea066dd73e298cdb36da' || cat.includes('game') || cat.includes('cd') || search.includes('game') || search.includes('cd'));
-  const isControllersActive = pathname === '/products' && (cat === '6a8ae13c5f408109bce576a6' || cat.includes('controller') || search.includes('controller'));
-  const isAccessoriesActive = pathname === '/products' && (cat === '6a8af3ad75f0085178374d75' || cat.includes('access') || search.includes('access'));
+  const isConsolesActive = pathname === '/products' && !search && (cat === '6a8ad5a068ae35d1a79d1a83' || cat.includes('console'));
+  const isGamesActive = pathname === '/products' && !search && (cat === '6a8aea066dd73e298cdb36da' || cat.includes('game') || cat.includes('cd'));
+  const isControllersActive = pathname === '/products' && !search && (cat === '6a8ae13c5f408109bce576a6' || cat.includes('controller'));
+  const isAccessoriesActive = pathname === '/products' && !search && (cat === '6a8af3ad75f0085178374d75' || cat.includes('access'));
   
   const isCatalogActive = pathname === '/products' && !isConsolesActive && !isGamesActive && !isControllersActive && !isAccessoriesActive;
 
@@ -102,16 +102,31 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
 
   // Handle Search Input Change & Fetch Auto-Suggestions
   useEffect(() => {
-    if (!localSearch.trim() || localSearch.trim().length < 2) {
+    const trimmed = localSearch.trim();
+
+    // 1. When input is completely cleared/empty: reset suggestions and notify parent immediately
+    if (!trimmed) {
       setSuggestions([]);
       setShowDropdown(false);
+      setSearchLoading(false);
+      onSearchChange?.('');
       return;
     }
 
+    // 2. If 1 character: close suggestions dropdown, but keep parent search query updated
+    if (trimmed.length < 2) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      setSearchLoading(false);
+      onSearchChange?.(trimmed);
+      return;
+    }
+
+    // 3. Debounce suggestions fetching and catalog search
     const handler = setTimeout(async () => {
       setSearchLoading(true);
-      onSearchChange?.(localSearch.trim());
-      const res = await fetchProducts({ search: localSearch.trim(), limit: 5 });
+      onSearchChange?.(trimmed);
+      const res = await fetchProducts({ search: trimmed, limit: 5 });
       if (res.success && res.data) {
         const inStockSuggestions = res.data.filter(item => item.inStock && (item.warehouseStock === undefined || item.warehouseStock > 0));
         setSuggestions(inStockSuggestions.slice(0, 5));
@@ -151,6 +166,9 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
     setSuggestions([]);
     if (localSearch.trim()) {
       router.push(`/products?search=${encodeURIComponent(localSearch.trim())}`);
+    } else {
+      router.push('/products');
+      onSearchChange?.('');
     }
   };
 

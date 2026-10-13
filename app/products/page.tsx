@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { MobileBottomNav, MobileTab } from '@/components/MobileBottomNav';
@@ -18,6 +18,7 @@ import { SlidersHorizontal, PackageSearch } from 'lucide-react';
 import { VisualCategoryShowcase } from '@/components/VisualCategoryShowcase';
 
 function CatalogContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || 'All';
   const initialSearch = searchParams.get('search') || '';
@@ -62,24 +63,14 @@ function CatalogContent() {
 
   // Sync state if URL params change
   useEffect(() => {
-    const cat = searchParams.get('category');
-    const search = searchParams.get('search');
-    const cond = searchParams.get('condition');
+    const cat = searchParams.get('category') || 'All';
+    const search = searchParams.get('search') || '';
+    const cond = (searchParams.get('condition') as ProductCondition) || 'All';
 
-    if (cat) {
-      setSelectedCategory(cat);
-      if (!search) {
-        setSearchQuery('');
-      }
-    }
-    if (search !== null && search !== undefined) {
-      setSearchQuery(search);
-    } else if (cat) {
-      setSearchQuery('');
-    }
-    if (cond) {
-      setSelectedCondition(cond as any);
-    }
+    setSelectedCategory(cat);
+    setSearchQuery(search);
+    setSelectedCondition(cond);
+    setCurrentPage(1);
   }, [searchParams]);
 
   // Fetch products
@@ -116,7 +107,14 @@ function CatalogContent() {
 
   const handleCategorySelect = (catId: string) => {
     setSelectedCategory(catId);
+    setSearchQuery('');
     setCurrentPage(1);
+
+    if (catId && catId !== 'All') {
+      router.replace(`/products?category=${encodeURIComponent(catId)}`, { scroll: false });
+    } else {
+      router.replace('/products', { scroll: false });
+    }
   };
 
   const handleConditionSelect = (condition: ProductCondition | 'All') => {
@@ -126,7 +124,18 @@ function CatalogContent() {
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
+    // If user starts searching from the header while viewing a specific category,
+    // clear category to 'All' so search scans the entire store
+    if (query.trim() && selectedCategory !== 'All') {
+      setSelectedCategory('All');
+    }
     setCurrentPage(1);
+
+    // If query is emptied, clean URL if search was previously in searchParams
+    if (!query.trim() && searchParams.get('search')) {
+      const catParam = selectedCategory !== 'All' ? `?category=${encodeURIComponent(selectedCategory)}` : '';
+      router.replace(`/products${catParam}`, { scroll: false });
+    }
   };
 
   const handleResetFilters = () => {
@@ -138,6 +147,7 @@ function CatalogContent() {
     setInStockOnly(false);
     setSortBy('latest');
     setCurrentPage(1);
+    router.replace('/products', { scroll: false });
   };
 
   const handleMobileTabSelect = (tab: MobileTab) => {
