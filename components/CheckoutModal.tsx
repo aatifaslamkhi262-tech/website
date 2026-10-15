@@ -31,6 +31,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
   const [city, setCity] = useState('Islamabad');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
@@ -63,6 +64,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     const payload: CheckoutPayload = {
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
+      customerEmail: customerEmail.trim() || undefined,
       shippingAddress: `${shippingAddress.trim()}, ${city}`,
       city,
       paymentMethod,
@@ -170,6 +172,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                     className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 font-mono font-medium"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Email Address <span className="text-slate-400 font-normal">(For Order Receipt & Confirmation)</span>
+                </label>
+                <input
+                  type="email"
+                  placeholder="e.g. yourname@gmail.com"
+                  value={customerEmail}
+                  onChange={e => setCustomerEmail(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 font-medium"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

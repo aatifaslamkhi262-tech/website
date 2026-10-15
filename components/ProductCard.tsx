@@ -35,7 +35,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
       case 'Used':
         return (
           <span className="inline-flex items-center bg-amber-50 text-amber-800 border border-amber-200/80 font-semibold text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full shadow-2xs">
-            Pre-Owned
+            Used
           </span>
         );
       case 'Refurbished':

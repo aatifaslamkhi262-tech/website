@@ -73,8 +73,6 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
 
   const currentConditionLabel = selectedCondition === 'All'
     ? 'Grade: All'
-    : selectedCondition === 'Used'
-    ? 'Pre-Owned'
     : selectedCondition;
 
   const currentSortLabel = sortBy === 'latest'
@@ -210,7 +208,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
                 {[
                   { val: 'All', label: 'Grade: All' },
                   { val: 'New', label: 'New' },
-                  { val: 'Used', label: 'Pre-Owned (Used)' },
+                  { val: 'Used', label: 'Used' },
                   { val: 'Refurbished', label: 'Refurbished' },
                 ].map(opt => {
                   const isSel = selectedCondition === opt.val;
@@ -384,7 +382,7 @@ export const CategoryPills: React.FC<CategoryPillsProps> = ({
                 {[
                   { val: 'All', label: 'All Grades' },
                   { val: 'New', label: 'New' },
-                  { val: 'Used', label: 'Pre-Owned' },
+                  { val: 'Used', label: 'Used' },
                   { val: 'Refurbished', label: 'Refurbished' },
                 ].map(opt => (
                   <button

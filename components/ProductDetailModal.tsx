@@ -133,7 +133,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 )}
                 {activeProduct.condition === 'Used' && (
                   <span className="bg-amber-500 text-white font-bold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full shadow-2xs">
-                    Pre-Owned (Used)
+                    Used
                   </span>
                 )}
                 {activeProduct.condition === 'Refurbished' && (

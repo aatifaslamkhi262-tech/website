@@ -168,7 +168,7 @@ export const Footer: React.FC = () => {
               <li><Link href="/products?category=6a8aea066dd73e298cdb36da" className="hover:text-blue-400 transition-colors">PS5 & PS4 Game CDs</Link></li>
               <li><Link href="/products?category=6a8ae13c5f408109bce576a6" className="hover:text-blue-400 transition-colors">Controllers</Link></li>
               <li><Link href="/products?category=6a8af3ad75f0085178374d75" className="hover:text-blue-400 transition-colors">Accessories & Gear</Link></li>
-              <li><Link href="/products?condition=Used" className="hover:text-blue-400 transition-colors">Pre-Owned Collection</Link></li>
+              <li><Link href="/products?condition=Used" className="hover:text-blue-400 transition-colors">Used Collection</Link></li>
             </ul>
           </div>
 

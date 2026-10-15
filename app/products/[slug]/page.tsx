@@ -71,15 +71,15 @@ export default async function ProductDetailPage({ params }: Props) {
 
   // Fetch related products from same category or general catalog
   const categoryId = typeof product.category === 'object' && product.category !== null ? product.category._id : (product.category || '');
-  const relatedRes = await fetchProducts({ category: categoryId, limit: 8 });
-  const relatedProducts = (relatedRes.success && relatedRes.data)
-    ? relatedRes.data.filter(p => p._id !== product._id).slice(0, 4)
-    : [];
+  const relatedRes = await fetchProducts({ category: categoryId, limit: 12 });
+  const categoryProducts = (relatedRes.success && relatedRes.data) ? relatedRes.data : [];
+  const relatedProducts = categoryProducts.filter(p => p._id !== product._id).slice(0, 4);
 
   return (
     <ProductDetailClientPage
       product={product}
       relatedProducts={relatedProducts}
+      allCategoryProducts={categoryProducts}
     />
   );
 }

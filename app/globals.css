@@ -55,6 +55,21 @@
   animation-play-state: paused;
 }
 
+@keyframes ticker-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-ticker-reverse {
+  display: flex;
+  width: max-content;
+  animation: ticker-reverse 25s linear infinite;
+}
+
+.animate-ticker-reverse:hover {
+  animation-play-state: paused;
+}
+
 /* Creative Flying Cart Item Animation */
 @keyframes flyToCartKeyframes {
   0% {

@@ -66,6 +66,7 @@ export type PaymentMethod = 'CASH' | 'BANK_TRANSFER';
 export interface CheckoutPayload {
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   shippingAddress: string;
   city?: string;
   paymentMethod: PaymentMethod;
