@@ -115,7 +115,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ orderData,
               </div>
             </div>
             <p className="text-[10px] text-blue-800 font-medium">
-              * Please WhatsApp transfer receipt screenshot with Order Ref <span className="font-mono font-bold">#{orderData.saleNumber}</span> to <a href="https://wa.me/message/GI7WD5IE3FXDE1" target="_blank" rel="noopener noreferrer" className="font-bold underline text-[#0070D1]">+92 312 2319157</a>.
+              * Please WhatsApp transfer receipt screenshot with Order Ref <span className="font-mono font-bold">#{orderData.saleNumber}</span> to <a href="https://wa.me/923320329000" target="_blank" rel="noopener noreferrer" className="font-bold underline text-[#0070D1]">+92 332 0329000</a>.
             </p>
           </div>
         )}

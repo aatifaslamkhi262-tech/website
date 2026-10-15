@@ -27,7 +27,7 @@ export const StockLimitModal: React.FC<StockLimitModalProps> = ({ stockInfo, onC
 
   const handleWhatsAppContact = () => {
     const msg = `Hi PGS Game Shop, I want to inquire about additional stock for ${product.name} (SKU: ${product.sku}). Currently only ${availableStock} unit(s) available on website.`;
-    window.open(`https://wa.me/923122319157?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/923320329000?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const primaryImg = product.images && product.images.length > 0

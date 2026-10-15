@@ -150,7 +150,7 @@ export default function ProductDetailClientPage({
     const conditionStr = activeProduct.condition ? ` (${activeProduct.condition})` : '';
     const priceText = priceOnCall ? 'price inquiry' : formatPKR(finalPrice);
     const msg = `Hi PGS Game Shop, I want to order ${activeProduct.name}${conditionStr} (SKU: ${activeProduct.sku}) for ${priceText}. Is it ready for Karachi / Nationwide delivery?`;
-    window.open(`https://wa.me/923122319157?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/923320329000?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const effectiveProductForCart: Product = {
@@ -788,12 +788,6 @@ export default function ProductDetailClientPage({
               {activeTab === 'guarantee' && (
                 <div className="space-y-4 animate-in fade-in duration-200 text-xs sm:text-sm">
                   <div className="space-y-3">
-                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
-                      <h4 className="font-bold text-slate-900 text-xs sm:text-sm">How does the 7-Day Checking Warranty work?</h4>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        Used consoles, controllers, and accessories are covered by our 7-Day checking warranty. If any functional hardware fault is detected, we offer free repair or replacement.
-                      </p>
-                    </div>
 
                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
                       <h4 className="font-bold text-slate-900 text-xs sm:text-sm">Are games and accessories original?</h4>

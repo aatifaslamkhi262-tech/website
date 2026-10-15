@@ -117,12 +117,12 @@ export default function AboutPage() {
               <div className="text-slate-600 leading-relaxed space-y-1.5">
                 <p>Contact our customer team directly for orders, pricing, and game trade-in inquiries.</p>
                 <div className="font-mono font-bold text-slate-900 space-y-0.5">
-                  <p>Primary: +92 312 2319157</p>
-                  <p>Landline/Alt: +92 332 0329000</p>
+                  <p>WhatsApp / Support: +92 332 0329000</p>
+                  <p>Alt: +92 312 2319157</p>
                 </div>
                 <div className="pt-2 flex items-center gap-2 flex-wrap">
                   <a
-                    href="https://wa.me/message/GI7WD5IE3FXDE1"
+                    href="https://wa.me/923320329000"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition-all"

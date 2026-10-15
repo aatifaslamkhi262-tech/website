@@ -28,7 +28,7 @@ export default function NotFound() {
 
   const handleWhatsAppHelp = () => {
     const msg = `Hi PGS Game Shop, I was looking for a product on your website but reached a 404 page. Can you help me find it?`;
-    window.open(`https://wa.me/923122319157?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/923320329000?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const POPULAR_DESTINATIONS = [

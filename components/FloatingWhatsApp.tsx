@@ -15,7 +15,7 @@ export const FloatingWhatsApp: React.FC<FloatingWhatsAppProps> = ({ hide = false
   if (isCartOpen || hide) return null;
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/message/GI7WD5IE3FXDE1', '_blank');
+    window.open('https://wa.me/923320329000', '_blank');
   };
 
   return (
@@ -23,7 +23,7 @@ export const FloatingWhatsApp: React.FC<FloatingWhatsAppProps> = ({ hide = false
       <button
         onClick={handleWhatsAppClick}
         className="group flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white p-3 sm:px-4 sm:py-3 rounded-full shadow-xl shadow-emerald-900/20 hover:shadow-2xl transition-all duration-300 active:scale-95 cursor-pointer relative"
-        title="Chat on WhatsApp (+92 312 2319157)"
+        title="Chat on WhatsApp (+92 332 0329000)"
       >
         {/* Pulse Glow Effect */}
         <span className="absolute -inset-0.5 rounded-full bg-[#25D366] opacity-40 animate-ping -z-10" />

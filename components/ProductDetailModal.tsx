@@ -98,7 +98,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
   const handleWhatsAppContact = () => {
     const msg = `Hi PGS Game Shop, I want to inquire about price and availability for ${activeProduct.name} (SKU: ${activeProduct.sku}).`;
-    window.open(`https://wa.me/923122319157?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/923320329000?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const effectiveProductForCart: Product = {

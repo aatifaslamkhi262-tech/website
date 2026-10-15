@@ -190,7 +190,7 @@ export const Footer: React.FC = () => {
               </div>
               <div className="pt-2 flex items-center gap-2 flex-wrap">
                 <a
-                  href="https://wa.me/message/GI7WD5IE3FXDE1"
+                  href="https://wa.me/923320329000"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 bg-[#25D366] hover:bg-[#20ba59] text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm"
