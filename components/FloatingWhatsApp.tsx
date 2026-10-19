@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { MessageCircle } from 'lucide-react';
 
@@ -10,16 +11,20 @@ interface FloatingWhatsAppProps {
 
 export const FloatingWhatsApp: React.FC<FloatingWhatsAppProps> = ({ hide = false }) => {
   const { isCartOpen } = useCart();
+  const pathname = usePathname();
 
   // Disappear when cart drawer is open or hide prop is true
   if (isCartOpen || hide) return null;
+
+  // On mobile product detail page, the sticky bar already provides direct WhatsApp order button
+  const isProductDetailPage = Boolean(pathname?.startsWith('/products/') && pathname !== '/products');
 
   const handleWhatsAppClick = () => {
     window.open('https://wa.me/923320329000', '_blank');
   };
 
   return (
-    <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 animate-in fade-in zoom-in-90 duration-300">
+    <div className={`fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 animate-in fade-in zoom-in-90 duration-300 ${isProductDetailPage ? 'hidden md:block' : ''}`}>
       <button
         onClick={handleWhatsAppClick}
         className="group flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white p-3 sm:px-4 sm:py-3 rounded-full shadow-xl shadow-emerald-900/20 hover:shadow-2xl transition-all duration-300 active:scale-95 cursor-pointer relative"

@@ -225,11 +225,17 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
 
     // Filter by category
     if (category && category !== 'All') {
+      const catLower = category.toLowerCase();
       filtered = filtered.filter(p => {
         if (typeof p.category === 'object' && p.category !== null) {
-          return p.category._id === category || p.category.slug === category;
+          const catName = (p.category.name || '').toLowerCase();
+          const catSlug = (p.category.slug || '').toLowerCase();
+          return p.category._id === category || catSlug === catLower || catName.includes(catLower);
         }
-        return p.category === category;
+        if (typeof p.category === 'string') {
+          return p.category === category || p.category.toLowerCase().includes(catLower);
+        }
+        return false;
       });
     }
 

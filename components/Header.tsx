@@ -266,14 +266,14 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
   return (
     <header ref={headerRef} className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-6">
+        <div className="flex items-center justify-between h-14 sm:h-20 gap-4 sm:gap-6">
           
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
             <img
               src="/logo.png"
               alt="PGS Game Shop Karachi"
-              className="h-11 sm:h-14 w-auto object-contain transition-transform group-hover:scale-105 duration-200"
+              className="h-10 sm:h-14 w-auto object-contain transition-transform group-hover:scale-105 duration-200"
             />
             <div className="hidden xs:flex flex-col">
               <span className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 font-sans leading-none">
@@ -295,8 +295,8 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
             
             {/* Auto-Suggest Search Bar Container (Desktop) */}
             <div className="relative hidden md:block w-60 lg:w-72">
-              <form onSubmit={handleSearchSubmit}>
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Search products, SKUs..."
@@ -305,7 +305,7 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                     if (suggestions.length > 0) setShowDropdown(true);
                   }}
                   onChange={e => setLocalSearch(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 text-xs bg-slate-100/80 border border-slate-200/80 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 placeholder:text-slate-400 font-medium transition-all"
+                  className="w-full h-10 pl-9 pr-8 text-xs sm:text-sm leading-normal bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 placeholder:text-slate-400 font-medium transition-all"
                 />
                 {localSearch && (
                   <button
@@ -316,7 +316,7 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                       setShowDropdown(false);
                       setSuggestions([]);
                     }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200 transition-colors"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -332,12 +332,12 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
             <button
               id="header-cart-btn"
               onClick={handleCartTrigger}
-              className="relative flex items-center gap-2 bg-[#0070D1] hover:bg-[#005bb5] active:scale-95 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-sm shadow-blue-600/20 transition-all shrink-0 cursor-pointer"
+              className="relative w-10 h-10 sm:w-auto sm:h-auto flex items-center justify-center gap-2 bg-[#0070D1] hover:bg-[#005bb5] active:scale-95 text-white text-xs sm:text-sm font-bold sm:px-4 sm:py-2.5 rounded-xl shadow-sm transition-all shrink-0 cursor-pointer"
             >
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Cart</span>
               {totalItemsCount > 0 && (
-                <span className="bg-white text-blue-900 text-xs font-extrabold px-2 py-0.5 rounded-full shadow-2xs">
+                <span className="absolute -top-1.5 -right-1.5 sm:static bg-rose-500 sm:bg-white text-white sm:text-blue-900 text-[10px] sm:text-xs font-extrabold w-4 h-4 sm:w-auto sm:h-auto sm:px-2 sm:py-0.5 rounded-full flex items-center justify-center shadow-xs">
                   {totalItemsCount}
                 </span>
               )}
@@ -349,8 +349,8 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
 
         {/* Mobile Search Bar (With Auto-Suggest Dropdown!) */}
         <div className="pb-3 md:hidden relative">
-          <form onSubmit={handleSearchSubmit}>
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Search products..."
@@ -359,7 +359,7 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                 if (suggestions.length > 0) setShowDropdown(true);
               }}
               onChange={e => setLocalSearch(e.target.value)}
-              className="w-full pl-10 pr-10 py-2 text-xs bg-slate-100 border border-slate-200 rounded-xl focus:bg-white text-slate-900 placeholder:text-slate-400 font-medium"
+              className="w-full h-10 pl-10 pr-10 text-sm leading-normal bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 placeholder:text-slate-400 font-medium transition-colors"
             />
             {localSearch && (
               <button
@@ -370,7 +370,7 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                   setShowDropdown(false);
                   setSuggestions([]);
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 p-0.5"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200 transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

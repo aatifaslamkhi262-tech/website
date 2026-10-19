@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
@@ -12,7 +13,7 @@ import { CheckoutModal } from '@/components/CheckoutModal';
 import { OrderSuccessModal } from '@/components/OrderSuccessModal';
 import { Product, CheckoutResponseData } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
-import { getProductEffectivePrice, isPriceOnCall } from '@/lib/api';
+import { getProductEffectivePrice, isPriceOnCall, getProductSlug } from '@/lib/api';
 import {
   ShoppingBag, PhoneCall, ShieldCheck, Truck, Store, ArrowLeft,
   Share2, Check, Sparkles, Plus, Minus, Gamepad2, Award,
@@ -39,6 +40,7 @@ export default function ProductDetailClientPage({
   relatedProducts,
   allCategoryProducts = []
 }: ClientProps) {
+  const router = useRouter();
   const { cart, addToCart, updateQuantity, openCart } = useCart();
 
   // Active product state for condition variants (New vs Used)
@@ -147,9 +149,13 @@ export default function ProductDetailClientPage({
   };
 
   const handleWhatsAppContact = () => {
-    const conditionStr = activeProduct.condition ? ` (${activeProduct.condition})` : '';
-    const priceText = priceOnCall ? 'price inquiry' : formatPKR(finalPrice);
-    const msg = `Hi PGS Game Shop, I want to order ${activeProduct.name}${conditionStr} (SKU: ${activeProduct.sku}) for ${priceText}. Is it ready for Karachi / Nationwide delivery?`;
+    const conditionStr = activeProduct.condition ? ` [${activeProduct.condition}]` : '';
+    const priceText = priceOnCall ? 'Price on Call' : formatPKR(finalPrice);
+    const productUrl = typeof window !== 'undefined' && window.location.origin
+      ? `${window.location.origin}/products/${getProductSlug(activeProduct)}`
+      : `https://pgsgameshop.online/products/${getProductSlug(activeProduct)}`;
+
+    const msg = `Hi PGS Game Shop, I want to order this product:\n\n*${activeProduct.name}*${conditionStr}\nPrice: ${priceText}\nSKU: ${activeProduct.sku}\n\n${productUrl}`;
     window.open(`https://wa.me/923320329000?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -408,27 +414,31 @@ export default function ProductDetailClientPage({
         
         {/* Navigation & Breadcrumb Row */}
         <div className="flex items-center justify-between gap-3 text-xs text-slate-500 font-medium">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 min-w-0">
             <Link
               href="/products"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold transition-all hover:text-[#0070D1]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs transition-all hover:text-[#0070D1] shadow-2xs shrink-0"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Catalog</span>
             </Link>
-            <span className="text-slate-300 hidden sm:inline">/</span>
-            <Link href="/" className="hover:text-[#0070D1] transition-colors hidden sm:inline">Home</Link>
-            <span className="text-slate-300 hidden sm:inline">/</span>
-            <Link href="/products" className="hover:text-[#0070D1] transition-colors hidden sm:inline">{categoryName}</Link>
-            <span className="text-slate-300 hidden sm:inline">/</span>
-            <span className="text-slate-800 font-semibold truncate max-w-[180px] sm:max-w-xs">{activeProduct.name}</span>
+
+            {/* Desktop Breadcrumbs (Hidden on Mobile to keep single clean row) */}
+            <div className="hidden sm:flex items-center gap-2 min-w-0 truncate">
+              <span className="text-slate-300">/</span>
+              <Link href="/" className="hover:text-[#0070D1] transition-colors shrink-0">Home</Link>
+              <span className="text-slate-300">/</span>
+              <Link href="/products" className="hover:text-[#0070D1] transition-colors shrink-0">{categoryName}</Link>
+              <span className="text-slate-300">/</span>
+              <span className="text-slate-800 font-semibold truncate max-w-[200px] lg:max-w-sm">{activeProduct.name}</span>
+            </div>
           </div>
 
-          {/* Share Button */}
+          {/* Share Button (Matching height and styling for perfect row alignment) */}
           <button
             type="button"
             onClick={handleShare}
-            className="inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-xl font-bold text-slate-700 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+            className="inline-flex items-center gap-1.5 bg-white border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-xl font-bold text-xs text-slate-700 shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0"
             title="Share this product"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5 text-[#0070D1]" />}
@@ -975,8 +985,8 @@ export default function ProductDetailClientPage({
           activeTab="search"
           onTabSelect={tab => {
             if (tab === 'cart') openCart();
-            else if (tab === 'home') window.location.href = '/';
-            else if (tab === 'categories') window.location.href = '/products';
+            else if (tab === 'home') router.push('/');
+            else if (tab === 'categories') router.push('/products');
           }}
         />
       )}

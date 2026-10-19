@@ -82,7 +82,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
 
   const handleWhatsAppContact = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const msg = `Hi PGS Game Shop, I want to inquire about price and availability for ${product.name} (SKU: ${product.sku}).`;
+    const productUrl = typeof window !== 'undefined' && window.location.origin
+      ? `${window.location.origin}/products/${getProductSlug(product)}`
+      : `https://pgsgameshop.online/products/${getProductSlug(product)}`;
+    const msg = `Hi PGS Game Shop, I want to inquire about price and availability for *${product.name}* (SKU: ${product.sku}).\n\n${productUrl}`;
     window.open(`https://wa.me/923320329000?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -226,7 +229,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             </button>
           ) : cartQty > 0 ? (
             <div
-              className="w-full py-1 px-1.5 rounded-xl bg-blue-50 border border-blue-300 flex items-center justify-between shadow-2xs"
+              className="w-full py-1.5 px-2 rounded-xl bg-blue-50 border border-blue-300 flex items-center justify-between shadow-2xs"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -235,13 +238,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
                   e.stopPropagation();
                   updateQuantity(product._id, cartQty - 1);
                 }}
-                className="w-7 h-7 rounded-lg bg-white text-blue-700 hover:bg-rose-600 hover:text-white border border-blue-200 hover:border-rose-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs font-bold"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white text-blue-700 hover:bg-rose-600 hover:text-white border border-blue-200 hover:border-rose-600 flex items-center justify-center transition-all active:scale-90 shadow-2xs font-bold touch-manipulation cursor-pointer shrink-0"
                 title="Decrease quantity"
+                aria-label="Decrease quantity"
               >
-                <Minus className="w-3.5 h-3.5" />
+                <Minus className="w-4 h-4" />
               </button>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 select-none">
                 <span className="text-xs sm:text-sm font-extrabold text-blue-950 font-mono">
                   {cartQty}
                 </span>
@@ -254,10 +258,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
                   e.stopPropagation();
                   updateQuantity(product._id, cartQty + 1);
                 }}
-                className="w-7 h-7 rounded-lg bg-[#0070D1] text-white hover:bg-[#005bb5] flex items-center justify-center transition-all active:scale-95 shadow-2xs font-bold"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#0070D1] text-white hover:bg-[#005bb5] flex items-center justify-center transition-all active:scale-90 shadow-2xs font-bold touch-manipulation cursor-pointer shrink-0"
                 title="Increase quantity"
+                aria-label="Increase quantity"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
               </button>
             </div>
           ) : (

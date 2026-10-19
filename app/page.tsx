@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { HeroCarousel } from '@/components/HeroCarousel';
@@ -18,6 +19,7 @@ import { Store, ShieldCheck, Truck, ArrowRight, Sparkles, Award } from 'lucide-r
 import { VisualCategoryShowcase } from '@/components/VisualCategoryShowcase';
 
 export default function StorefrontHomePage() {
+  const router = useRouter();
   const { openCart } = useCart();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -352,7 +354,7 @@ export default function StorefrontHomePage() {
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav activeTab="home" onTabSelect={tab => {
         if (tab === 'cart') openCart();
-        else if (tab === 'search' || tab === 'categories') window.location.href = '/products';
+        else if (tab === 'search' || tab === 'categories') router.push('/products');
       }} />
 
       {/* Footer */}

@@ -155,7 +155,7 @@ function CatalogContent() {
     if (tab === 'cart') {
       openCart();
     } else if (tab === 'home') {
-      window.location.href = '/';
+      router.push('/');
     } else if (tab === 'categories') {
       const el = document.getElementById('category-filter-section');
       el?.scrollIntoView({ behavior: 'smooth' });
@@ -173,14 +173,14 @@ function CatalogContent() {
       />
 
       {/* Main Catalog Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         
         {/* Page Title & Breadcrumb */}
-        <div className="mb-6">
+        <div className="mb-3 sm:mb-6">
           <div className="text-xs text-slate-400 font-medium mb-1">
             <span>Home</span> <span className="mx-1">•</span> <span className="text-slate-900 font-bold">Products Catalog</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Full Store Products Catalog
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-normal">
@@ -188,8 +188,8 @@ function CatalogContent() {
           </p>
         </div>
 
-        {/* 3D Visual Category Cards Showcase */}
-        <div className="mb-6">
+        {/* 3D Visual Category Cards Showcase (Desktop / Tablet) */}
+        <div className="hidden md:block mb-6">
           <VisualCategoryShowcase
             onCategoryClick={handleCategorySelect}
             selectedCategory={selectedCategory}
@@ -197,7 +197,7 @@ function CatalogContent() {
         </div>
 
         {/* Filter Toolbar Section */}
-        <div id="category-filter-section" className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs mb-6">
+        <div id="category-filter-section" className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-2xs mb-4 sm:mb-6">
           <CategoryPills
             categories={categories}
             selectedCategory={selectedCategory}

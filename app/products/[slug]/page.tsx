@@ -19,9 +19,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const primaryImage = product.images && product.images.length > 0
-    ? (product.images.find(img => img.isPrimary)?.url || product.images[0]?.url)
-    : 'https://pgsgameshop.online/public/logo.png';
+  const rawImage = product.images && product.images.length > 0
+    ? (product.images.find(img => img.isPrimary)?.url || product.images[0]?.url || '')
+    : '/logo.png';
+
+  const primaryImage = rawImage.startsWith('http')
+    ? rawImage
+    : `https://pgsgameshop.online${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
 
   const priceStr = isPriceOnCall(product)
     ? 'Call for Price'
@@ -45,6 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [
         {
           url: primaryImage,
+          secureUrl: primaryImage,
           width: 800,
           height: 800,
           alt: product.name,

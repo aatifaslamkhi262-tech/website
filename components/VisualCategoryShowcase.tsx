@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Gamepad2, Disc, Headphones, Sparkles, ArrowRight } from 'lucide-react';
 
 interface CategoryCardItem {
@@ -82,6 +83,8 @@ export const VisualCategoryShowcase: React.FC<VisualCategoryShowcaseProps> = ({
   onCategoryClick,
   selectedCategory = 'All',
 }) => {
+  const router = useRouter();
+
   return (
     <section className="space-y-3">
       {/* Section Header */}
@@ -100,8 +103,8 @@ export const VisualCategoryShowcase: React.FC<VisualCategoryShowcaseProps> = ({
         </Link>
       </div>
 
-      {/* MOBILE EXPERIENCE: Instagram / Gaming Story Row (Horizontal Swipe, minimal height) */}
-      <div className="sm:hidden overflow-x-auto no-scrollbar py-1 -mx-4 px-4 flex items-center gap-3">
+      {/* MOBILE EXPERIENCE: Instagram / Gaming Story Row (Horizontal Swipe) */}
+      <div className="sm:hidden overflow-x-auto no-scrollbar py-2 -mx-4 px-4 flex items-center gap-3.5">
         {CATEGORY_ITEMS.map((item) => {
           const isSelected = selectedCategory === item.categoryId;
 
@@ -113,14 +116,14 @@ export const VisualCategoryShowcase: React.FC<VisualCategoryShowcaseProps> = ({
                 if (onCategoryClick) {
                   onCategoryClick(item.categoryId);
                 } else {
-                  window.location.href = item.link;
+                  router.push(item.link);
                 }
               }}
-              className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none active:scale-95 transition-transform duration-150"
+              className="flex flex-col items-center gap-2 shrink-0 group focus:outline-none active:scale-95 transition-transform duration-150"
             >
-              {/* Story Avatar Ring with Active Neon Pulse Glow */}
+              {/* Story Avatar Ring (Increased size for rich visual impact) */}
               <div
-                className={`w-16 h-16 rounded-full p-[2.5px] transition-all duration-300 ${
+                className={`w-20 h-20 rounded-full p-[2.5px] transition-all duration-300 ${
                   isSelected
                     ? 'bg-gradient-to-tr from-[#0070D1] via-cyan-400 to-blue-600 ring-2 ring-[#0070D1] scale-105 shadow-md shadow-blue-500/30 animate-pulse'
                     : 'bg-gradient-to-tr from-slate-300 via-slate-200 to-slate-400 group-hover:from-[#0070D1] group-hover:via-cyan-400 group-hover:to-blue-600'
@@ -136,7 +139,7 @@ export const VisualCategoryShowcase: React.FC<VisualCategoryShowcaseProps> = ({
               </div>
 
               {/* Story Title Label */}
-              <span className={`text-[11px] font-bold tracking-tight text-center max-w-[72px] truncate transition-colors ${
+              <span className={`text-xs font-bold tracking-tight text-center max-w-[80px] truncate transition-colors ${
                 isSelected ? 'text-[#0070D1] font-extrabold' : 'text-slate-700 group-hover:text-[#0070D1]'
               }`}>
                 {item.shortTitle}
