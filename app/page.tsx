@@ -228,7 +228,7 @@ export default function StorefrontHomePage() {
               </h2>
             </div>
             <Link
-              href="/products?category=6a8ad5a068ae35d1a79d1a83"
+              href="/category/consoles"
               className="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all w-fit shrink-0"
             >
               <span>Explore All</span> <ArrowRight className="w-3.5 h-3.5" />
@@ -265,7 +265,7 @@ export default function StorefrontHomePage() {
             </div>
 
             <Link
-              href="/products?category=6a8aea066dd73e298cdb36da"
+              href="/category/games"
               className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors shrink-0 whitespace-nowrap pb-0.5"
             >
               <span>View All</span> <ArrowRight className="w-3.5 h-3.5" />
@@ -301,7 +301,7 @@ export default function StorefrontHomePage() {
               </h2>
             </div>
             <Link
-              href="/products?category=6a8ae13c5f408109bce576a6"
+              href="/category/controllers"
               className="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all w-fit shrink-0"
             >
               <span>Explore Gear</span> <ArrowRight className="w-3.5 h-3.5" />

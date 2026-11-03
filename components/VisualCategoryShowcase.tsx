@@ -31,7 +31,7 @@ const CATEGORY_ITEMS: CategoryCardItem[] = [
     gradientBg: 'from-slate-950 via-slate-900 to-blue-950/80',
     borderColor: 'border-blue-500/30 hover:border-blue-400/80',
     imageSrc: '/images/category_consoles.jpg',
-    link: '/products?category=6a8ad5a068ae35d1a79d1a83',
+    link: '/category/consoles',
   },
   {
     id: 'games',
@@ -44,7 +44,7 @@ const CATEGORY_ITEMS: CategoryCardItem[] = [
     gradientBg: 'from-slate-950 via-slate-900 to-indigo-950/80',
     borderColor: 'border-indigo-500/30 hover:border-indigo-400/80',
     imageSrc: '/images/category_games.jpg',
-    link: '/products?category=6a8aea066dd73e298cdb36da',
+    link: '/category/games',
   },
   {
     id: 'controllers',
@@ -57,7 +57,7 @@ const CATEGORY_ITEMS: CategoryCardItem[] = [
     gradientBg: 'from-slate-950 via-slate-900 to-blue-900/80',
     borderColor: 'border-blue-500/30 hover:border-blue-400/80',
     imageSrc: '/images/category_controllers.jpg',
-    link: '/products?category=6a8ae13c5f408109bce576a6',
+    link: '/category/controllers',
   },
   {
     id: 'accessories',
@@ -70,7 +70,7 @@ const CATEGORY_ITEMS: CategoryCardItem[] = [
     gradientBg: 'from-slate-950 via-slate-900 to-slate-800',
     borderColor: 'border-slate-700 hover:border-blue-400/80',
     imageSrc: '/images/category_accessories.jpg',
-    link: '/products?category=6a8af3ad75f0085178374d75',
+    link: '/category/accessories',
   },
 ];
 
