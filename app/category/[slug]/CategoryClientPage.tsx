@@ -193,3 +193,4 @@ export default function CategoryClientPage({ config, initialProducts }: Props) {
     </div>
   );
 }
+

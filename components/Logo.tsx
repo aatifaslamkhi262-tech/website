@@ -19,9 +19,11 @@ export const Logo: React.FC<LogoProps> = ({ className = '', size = 'md' }) => {
 
   return (
     <div className={`inline-flex items-center gap-2 relative ${className}`}>
-      <img
+      <Image
         src="/logo.png"
         alt="PGS Game Shop Karachi"
+        width={80}
+        height={80}
         className={`${heightMap[size]} w-auto object-contain drop-shadow-md hover:scale-105 transition-transform duration-200`}
       />
     </div>

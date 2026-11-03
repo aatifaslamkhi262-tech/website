@@ -104,3 +104,4 @@ export const CATEGORY_CONFIGS: Record<string, CategorySeoConfig> = {
     ],
   },
 };
+

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Search, ShoppingBag, Gamepad2, Phone, X, Check, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -22,10 +23,10 @@ function HeaderNavLinks({ pathname, searchQuery }: { pathname: string; searchQue
   const search = (searchParams?.get('search') || searchQuery || '').toLowerCase();
 
   const isHomeActive = pathname === '/';
-  const isConsolesActive = pathname === '/products' && !search && (cat === '6a8ad5a068ae35d1a79d1a83' || cat.includes('console'));
-  const isGamesActive = pathname === '/products' && !search && (cat === '6a8aea066dd73e298cdb36da' || cat.includes('game') || cat.includes('cd'));
-  const isControllersActive = pathname === '/products' && !search && (cat === '6a8ae13c5f408109bce576a6' || cat.includes('controller'));
-  const isAccessoriesActive = pathname === '/products' && !search && (cat === '6a8af3ad75f0085178374d75' || cat.includes('access'));
+  const isConsolesActive = pathname.startsWith('/category/consoles') || pathname.startsWith('/category/playstation-5') || (pathname === '/products' && !search && (cat === '6a8ad5a068ae35d1a79d1a83' || cat.includes('console')));
+  const isGamesActive = pathname.startsWith('/category/games') || (pathname === '/products' && !search && (cat === '6a8aea066dd73e298cdb36da' || cat.includes('game') || cat.includes('cd')));
+  const isControllersActive = pathname.startsWith('/category/controllers') || (pathname === '/products' && !search && (cat === '6a8ae13c5f408109bce576a6' || cat.includes('controller')));
+  const isAccessoriesActive = pathname.startsWith('/category/accessories') || (pathname === '/products' && !search && (cat === '6a8af3ad75f0085178374d75' || cat.includes('access')));
   
   const isCatalogActive = pathname === '/products' && !isConsolesActive && !isGamesActive && !isControllersActive && !isAccessoriesActive;
 
@@ -40,16 +41,16 @@ function HeaderNavLinks({ pathname, searchQuery }: { pathname: string; searchQue
       <Link href="/products" className={isCatalogActive ? activeStyle : inactiveStyle}>
         Catalog
       </Link>
-      <Link href="/products?category=6a8ad5a068ae35d1a79d1a83" className={isConsolesActive ? activeStyle : inactiveStyle}>
+      <Link href="/category/consoles" className={isConsolesActive ? activeStyle : inactiveStyle}>
         Consoles
       </Link>
-      <Link href="/products?category=6a8aea066dd73e298cdb36da" className={isGamesActive ? activeStyle : inactiveStyle}>
+      <Link href="/category/games" className={isGamesActive ? activeStyle : inactiveStyle}>
         Game CDs
       </Link>
-      <Link href="/products?category=6a8ae13c5f408109bce576a6" className={isControllersActive ? activeStyle : inactiveStyle}>
+      <Link href="/category/controllers" className={isControllersActive ? activeStyle : inactiveStyle}>
         Controllers
       </Link>
-      <Link href="/products?category=6a8af3ad75f0085178374d75" className={isAccessoriesActive ? activeStyle : inactiveStyle}>
+      <Link href="/category/accessories" className={isAccessoriesActive ? activeStyle : inactiveStyle}>
         Accessories
       </Link>
     </nav>
@@ -68,16 +69,16 @@ function HeaderNavFallback({ pathname }: { pathname: string }) {
       <Link href="/products" className={pathname === '/products' ? activeStyle : inactiveStyle}>
         Catalog
       </Link>
-      <Link href="/products?category=6a8ad5a068ae35d1a79d1a83" className={inactiveStyle}>
+      <Link href="/category/consoles" className={inactiveStyle}>
         Consoles
       </Link>
-      <Link href="/products?category=6a8aea066dd73e298cdb36da" className={inactiveStyle}>
+      <Link href="/category/games" className={inactiveStyle}>
         Game CDs
       </Link>
-      <Link href="/products?category=6a8ae13c5f408109bce576a6" className={inactiveStyle}>
+      <Link href="/category/controllers" className={inactiveStyle}>
         Controllers
       </Link>
-      <Link href="/products?category=6a8af3ad75f0085178374d75" className={inactiveStyle}>
+      <Link href="/category/accessories" className={inactiveStyle}>
         Accessories
       </Link>
     </nav>
@@ -380,9 +381,12 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
           
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <img
+            <Image
               src="/logo.png"
               alt="PGS Game Shop Karachi"
+              width={56}
+              height={56}
+              priority
               className="h-10 sm:h-14 w-auto object-contain transition-transform group-hover:scale-105 duration-200"
             />
             <div className="hidden xs:flex flex-col">

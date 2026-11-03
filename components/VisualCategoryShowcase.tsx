@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Gamepad2, Disc, Headphones, Sparkles, ArrowRight } from 'lucide-react';
 
@@ -130,9 +131,13 @@ export const VisualCategoryShowcase: React.FC<VisualCategoryShowcaseProps> = ({
                 }`}
               >
                 <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-2 border-white relative shadow-inner">
-                  <img
+                  <Image
                     src={item.imageSrc}
                     alt={item.title}
+                    fill
+                    sizes="80px"
+                    loading="lazy"
+                    quality={75}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>
@@ -172,9 +177,13 @@ export const VisualCategoryShowcase: React.FC<VisualCategoryShowcaseProps> = ({
             >
               {/* Background Art Cutout */}
               <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity duration-300">
-                <img
+                <Image
                   src={item.imageSrc}
                   alt={item.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 300px"
+                  loading="lazy"
+                  quality={75}
                   className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />

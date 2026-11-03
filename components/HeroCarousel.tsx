@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from 'lucide-react';
 
 interface Slide {
@@ -78,9 +79,14 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
               }`}
             >
               {/* Background Image with Ken-Burns Zoom FX */}
-              <img
+              <Image
                 src={slide.image}
                 alt={slide.title}
+                fill
+                priority={idx === 0}
+                loading={idx === 0 ? undefined : 'lazy'}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
+                quality={85}
                 className={`w-full h-full object-cover object-right sm:object-center transition-transform duration-[6000ms] ease-out ${
                   isActive ? 'scale-100' : 'scale-105'
                 }`}
