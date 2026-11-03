@@ -80,11 +80,53 @@ export default async function ProductDetailPage({ params }: Props) {
   const categoryProducts = (relatedRes.success && relatedRes.data) ? relatedRes.data : [];
   const relatedProducts = categoryProducts.filter(p => p._id !== product._id).slice(0, 4);
 
+  const effectivePrice = getProductEffectivePrice(product);
+  const rawImages = (product.images || []).map(img => img.url).filter(Boolean);
+  const productImages = rawImages.length > 0
+    ? rawImages.map(img => (img.startsWith('http') ? img : `https://pgsgameshop.online${img.startsWith('/') ? '' : '/'}${img}`))
+    : ['https://pgsgameshop.online/logo2.png'];
+  const canonicalUrl = `https://pgsgameshop.online/products/${getProductSlug(product)}`;
+
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    image: productImages,
+    description: product.description || `Buy ${product.name} online in Pakistan from PGS Game Shop. Authentic console/accessory with warranty.`,
+    sku: product.sku || product._id,
+    brand: {
+      '@type': 'Brand',
+      name: product.brand || 'PlayStation',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: canonicalUrl,
+      priceCurrency: 'PKR',
+      price: effectivePrice > 0 ? effectivePrice : undefined,
+      itemCondition: product.condition === 'New'
+        ? 'https://schema.org/NewCondition'
+        : 'https://schema.org/UsedCondition',
+      availability: product.inStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'PGS Game Shop',
+      },
+    },
+  };
+
   return (
-    <ProductDetailClientPage
-      product={product}
-      relatedProducts={relatedProducts}
-      allCategoryProducts={categoryProducts}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <ProductDetailClientPage
+        product={product}
+        relatedProducts={relatedProducts}
+        allCategoryProducts={categoryProducts}
+      />
+    </>
   );
 }

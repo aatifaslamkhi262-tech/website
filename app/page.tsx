@@ -17,6 +17,7 @@ import { Product, Category, CheckoutResponseData } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
 import { Store, ShieldCheck, Truck, ArrowRight, Sparkles, Award } from 'lucide-react';
 import { VisualCategoryShowcase } from '@/components/VisualCategoryShowcase';
+import { SeoContentSection } from '@/components/SeoContentSection';
 
 export default function StorefrontHomePage() {
   const router = useRouter();
@@ -323,6 +324,9 @@ export default function StorefrontHomePage() {
             )}
           </div>
         </section>
+
+        {/* SEO Guide & PS5 Price Content Section */}
+        <SeoContentSection />
 
       </main>
 
