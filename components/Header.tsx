@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Search, ShoppingBag, Gamepad2, Phone, X, Check, ArrowRight } from 'lucide-react';
+import { Search, ShoppingBag, Gamepad2, Phone, X, Check, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { fetchProducts, getProductEffectivePrice, getProductSlug } from '@/lib/api';
 import { Product } from '@/lib/types';
+import { tokenize } from '@/lib/smartSearch';
 
 interface HeaderProps {
   searchQuery?: string;
@@ -83,6 +84,37 @@ function HeaderNavFallback({ pathname }: { pathname: string }) {
   );
 }
 
+const POPULAR_SEARCHES = ['PS5 Slim', 'DualSense', 'Spider-Man 2', 'Xbox Series X', 'GTA V', 'Consoles'];
+
+function highlightMatchText(text: string, query: string) {
+  if (!query.trim()) return text;
+  const tokens = tokenize(query);
+  if (tokens.length === 0) return text;
+
+  // Use word boundaries for short tokens so '5' doesn't match inside '500' or 'ps' inside 'ps4'
+  const escaped = tokens.map(t => {
+    const clean = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return clean.length <= 3 ? `\\b${clean}\\b` : clean;
+  }).join('|');
+
+  const pattern = new RegExp(`(${escaped})`, 'gi');
+  const parts = text.split(pattern);
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        pattern.test(part) ? (
+          <span key={i} className="text-[#0070D1] font-bold underline decoration-blue-300 underline-offset-2">
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+}
+
 export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange, onCartClick, onSelectProduct }) => {
   const { totalItemsCount, openCart } = useCart();
   const pathname = usePathname();
@@ -93,7 +125,14 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [searchLoading, setSearchLoading] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
   const headerRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on route change
+  useEffect(() => {
+    setShowDropdown(false);
+    setIsFocused(false);
+  }, [pathname]);
 
   // Sync searchQuery prop changes down to localSearch if strictly different
   useEffect(() => {
@@ -107,7 +146,6 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
     // 1. When input is completely cleared/empty: reset suggestions and notify parent immediately
     if (!trimmed) {
       setSuggestions([]);
-      setShowDropdown(false);
       setSearchLoading(false);
       onSearchChange?.('');
       return;
@@ -116,7 +154,6 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
     // 2. If 1 character: close suggestions dropdown, but keep parent search query updated
     if (trimmed.length < 2) {
       setSuggestions([]);
-      setShowDropdown(false);
       setSearchLoading(false);
       onSearchChange?.(trimmed);
       return;
@@ -125,27 +162,29 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
     // 3. Debounce suggestions fetching and catalog search
     const handler = setTimeout(async () => {
       setSearchLoading(true);
+      if (isFocused) {
+        setShowDropdown(true);
+      }
       onSearchChange?.(trimmed);
-      const res = await fetchProducts({ search: trimmed, limit: 5 });
+      const res = await fetchProducts({ search: trimmed, limit: 6 });
       if (res.success && res.data) {
         const inStockSuggestions = res.data.filter(item => item.inStock && (item.warehouseStock === undefined || item.warehouseStock > 0));
-        setSuggestions(inStockSuggestions.slice(0, 5));
-        setShowDropdown(inStockSuggestions.length > 0);
+        setSuggestions(inStockSuggestions.slice(0, 6));
       } else {
         setSuggestions([]);
-        setShowDropdown(false);
       }
       setSearchLoading(false);
-    }, 200);
+    }, 150);
 
     return () => clearTimeout(handler);
-  }, [localSearch]);
+  }, [localSearch, isFocused]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
+        setIsFocused(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -160,10 +199,13 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
     }
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearchSubmit = (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     setShowDropdown(false);
-    setSuggestions([]);
+    setIsFocused(false);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     if (localSearch.trim()) {
       router.push(`/products?search=${encodeURIComponent(localSearch.trim())}`);
     } else {
@@ -174,7 +216,10 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
 
   const handleSelectSuggestion = (product: Product) => {
     setShowDropdown(false);
-    setSuggestions([]);
+    setIsFocused(false);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     if (onSelectProduct) {
       onSelectProduct(product);
     } else {
@@ -191,77 +236,142 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
     }).format(val).replace('PKR', 'Rs.');
   };
 
-  const renderSuggestionsList = () => (
-    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-      <div className="p-2 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-        <span>Instant Results ({suggestions.length})</span>
-        {searchLoading && <span className="text-[#0070D1] animate-pulse">Searching...</span>}
-      </div>
+  const renderSuggestionsList = () => {
+    const trimmed = localSearch.trim();
 
-      <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
-        {suggestions.map(item => {
-          const thumb = item.images && item.images.length > 0 ? item.images[0].url : '';
-          const finalP = getProductEffectivePrice(item);
+    // Case A: User focused on search bar and has NOT typed yet -> Show Popular Trends
+    if (!trimmed) {
+      return (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 p-3.5">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Popular Gaming Searches</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {POPULAR_SEARCHES.map(tag => (
+              <button
+                key={tag}
+                type="button"
+                onMouseDown={e => {
+                  e.preventDefault();
+                  setLocalSearch(tag);
+                  onSearchChange?.(tag);
+                }}
+                className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-blue-50 hover:text-[#0070D1] hover:border-blue-200 border border-transparent rounded-lg text-slate-700 transition-colors cursor-pointer"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
 
-          return (
-            <div
-              key={item._id}
-              onClick={() => handleSelectSuggestion(item)}
-              className="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center gap-3 transition-colors group"
-            >
-              {/* Thumb Image or Frame */}
-              <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 flex items-center justify-center">
-                {thumb ? (
-                  <img src={thumb} alt={item.name} className="w-full h-full object-contain" />
-                ) : (
-                  <Gamepad2 className="w-5 h-5 text-slate-400 group-hover:text-[#0070D1] transition-colors" />
-                )}
-              </div>
+    // Case B: User typed and matching products found
+    if (suggestions.length > 0) {
+      return (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+          <div className="p-2.5 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+            <span>Instant Results ({suggestions.length})</span>
+            {searchLoading && (
+              <span className="text-[#0070D1] flex items-center gap-1 font-semibold normal-case">
+                <Loader2 className="w-3 h-3 animate-spin" /> Searching...
+              </span>
+            )}
+          </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1">
-                  <span className="text-[9px] font-bold text-blue-900 bg-blue-50 px-1.5 py-0.2 rounded">
-                    {item.condition}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono truncate">
-                    {item.sku}
-                  </span>
+          <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+            {suggestions.map(item => {
+              const thumb = item.images && item.images.length > 0 ? item.images[0].url : '';
+              const finalP = getProductEffectivePrice(item);
+
+              return (
+                <div
+                  key={item._id}
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    handleSelectSuggestion(item);
+                  }}
+                  onClick={() => handleSelectSuggestion(item)}
+                  className="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center gap-3 transition-colors group"
+                >
+                  {/* Thumb Image or Frame */}
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 flex items-center justify-center">
+                    {thumb ? (
+                      <img src={thumb} alt={item.name} className="w-full h-full object-contain" />
+                    ) : (
+                      <Gamepad2 className="w-5 h-5 text-slate-400 group-hover:text-[#0070D1] transition-colors" />
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-bold text-blue-900 bg-blue-50 px-1.5 py-0.2 rounded">
+                        {item.condition}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono truncate">
+                        {item.sku}
+                      </span>
+                    </div>
+                    <h4 className="font-semibold text-slate-900 text-xs truncate group-hover:text-[#0070D1] transition-colors">
+                      {highlightMatchText(item.name, trimmed)}
+                    </h4>
+                    <div className="text-xs font-bold text-[#0070D1]">
+                      {formatPKR(finalP)}
+                    </div>
+                  </div>
+
+                  {/* Stock Status Pill */}
+                  <div className="shrink-0">
+                    {item.inStock ? (
+                      <span className="bg-blue-50 text-blue-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200/60 flex items-center gap-0.5">
+                        <Check className="w-3 h-3 text-[#0070D1]" /> In Stock
+                      </span>
+                    ) : (
+                      <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-200/60">
+                        Out of Stock
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <h4 className="font-semibold text-slate-900 text-xs truncate group-hover:text-[#0070D1] transition-colors">
-                  {item.name}
-                </h4>
-                <div className="text-xs font-bold text-[#0070D1]">
-                  {formatPKR(finalP)}
-                </div>
-              </div>
+              );
+            })}
+          </div>
 
-              {/* Stock Status Pill */}
-              <div className="shrink-0">
-                {item.inStock ? (
-                  <span className="bg-blue-50 text-blue-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200/60 flex items-center gap-0.5">
-                    <Check className="w-3 h-3 text-[#0070D1]" /> In Stock
-                  </span>
-                ) : (
-                  <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-200/60">
-                    Out of Stock
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+          <button
+            type="button"
+            onMouseDown={e => {
+              e.preventDefault();
+              handleSearchSubmit(e);
+            }}
+            onClick={handleSearchSubmit}
+            className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 text-[#0070D1] font-bold text-xs flex items-center justify-center gap-1.5 border-t border-slate-100 transition-colors cursor-pointer"
+          >
+            <span>View all matching results</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      );
+    }
+
+    // Case C: User typed but no direct matches found
+    return (
+      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 p-4 text-center">
+        {searchLoading ? (
+          <div className="flex items-center justify-center gap-2 text-xs text-slate-500 py-1">
+            <Loader2 className="w-4 h-4 text-[#0070D1] animate-spin" />
+            <span>Smart Searching catalog...</span>
+          </div>
+        ) : (
+          <div>
+            <p className="text-xs font-semibold text-slate-700">No direct matches for &ldquo;{trimmed}&rdquo;</p>
+            <p className="text-[11px] text-slate-400 mt-1">Press Enter to search catalog or try words like "PS5", "DualSense", "CD"</p>
+          </div>
+        )}
       </div>
-
-      <button
-        onClick={handleSearchSubmit}
-        className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1 border-t border-slate-100 transition-colors"
-      >
-        <span>View all matching results</span>
-        <ArrowRight className="w-3.5 h-3.5" />
-      </button>
-    </div>
-  );
+    );
+  };
 
   return (
     <header ref={headerRef} className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs transition-all">
@@ -302,7 +412,15 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                   placeholder="Search products, SKUs..."
                   value={localSearch}
                   onFocus={() => {
-                    if (suggestions.length > 0) setShowDropdown(true);
+                    setIsFocused(true);
+                    setShowDropdown(true);
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => {
+                      if (headerRef.current && !headerRef.current.contains(document.activeElement)) {
+                        setIsFocused(false);
+                      }
+                    }, 200);
                   }}
                   onChange={e => setLocalSearch(e.target.value)}
                   className="w-full h-10 pl-9 pr-8 text-xs sm:text-sm leading-normal bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 placeholder:text-slate-400 font-medium transition-all"
@@ -324,7 +442,7 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
               </form>
 
               {/* Instant Auto-Suggest Dropdown Overlay */}
-              {showDropdown && suggestions.length > 0 && renderSuggestionsList()}
+              {showDropdown && renderSuggestionsList()}
 
             </div>
 
@@ -356,7 +474,15 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
               placeholder="Search products..."
               value={localSearch}
               onFocus={() => {
-                if (suggestions.length > 0) setShowDropdown(true);
+                setIsFocused(true);
+                setShowDropdown(true);
+              }}
+              onBlur={() => {
+                setTimeout(() => {
+                  if (headerRef.current && !headerRef.current.contains(document.activeElement)) {
+                    setIsFocused(false);
+                  }
+                }, 200);
               }}
               onChange={e => setLocalSearch(e.target.value)}
               className="w-full h-10 pl-10 pr-10 text-sm leading-normal bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 placeholder:text-slate-400 font-medium transition-colors"
@@ -378,7 +504,7 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
           </form>
 
           {/* Instant Auto-Suggest Dropdown Overlay (Mobile) */}
-          {showDropdown && suggestions.length > 0 && renderSuggestionsList()}
+          {showDropdown && renderSuggestionsList()}
         </div>
 
       </div>

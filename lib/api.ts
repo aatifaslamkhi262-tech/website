@@ -1,5 +1,6 @@
 import { ProductsApiResponse, CategoriesApiResponse, CheckoutPayload, CheckoutApiResponse, ProductQueryParams, Category, Product } from './types';
 import { redisGet, redisSet, redisDel } from './redis';
+import { smartSearchProducts } from './smartSearch';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_IMS_API_URL || 'https://pgs-ims.vercel.app';
 const API_KEY = process.env.NEXT_PUBLIC_IMS_API_KEY || 'pgs_ecommerce_secret_key_2026';
@@ -117,7 +118,7 @@ async function ensureCatalogCache(): Promise<Product[]> {
         }
       }
 
-      const pages = [1, 2, 3, 4, 5, 6, 7];
+      const pages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       const promises = pages.map(p =>
         fetch(`${API_BASE_URL}/api/public/products?page=${p}&limit=100`, {
           headers: {
@@ -171,8 +172,8 @@ async function ensureCatalogCache(): Promise<Product[]> {
           categories: globalCatalogCache?.categories || []
         };
 
-        // Populate Upstash Redis RAM Cache (45s TTL for real-time freshness)
-        redisSet('pgs:catalog:v1', filteredProducts, 45).catch(() => {});
+        // Populate Upstash Redis RAM Cache (300s TTL for real-time freshness)
+        redisSet('pgs:catalog:v1', filteredProducts, 300).catch(() => {});
 
         if (typeof window !== 'undefined') {
           try {
@@ -208,19 +209,18 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
     sortBy = 'latest'
   } = params;
 
-  // 1. If catalog cache is already warm in memory, use it for instant sub-10ms filtering
-  if (globalCatalogCache && globalCatalogCache.products.length > 0) {
-    let filtered = [...globalCatalogCache.products];
+  // 1. Ensure catalog cache is loaded (from RAM, Upstash Redis, or IMS API)
+  let catalog = globalCatalogCache?.products;
+  if (!catalog || catalog.length === 0) {
+    catalog = await ensureCatalogCache();
+  }
 
-    // Filter by search query
+  if (catalog && catalog.length > 0) {
+    let filtered = [...catalog];
+
+    // Smart Multi-Word, Typo-Tolerant, Gaming-Synonym Search
     if (search.trim()) {
-      const s = search.toLowerCase().trim();
-      filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(s) ||
-        p.sku.toLowerCase().includes(s) ||
-        (p.brand && p.brand.toLowerCase().includes(s)) ||
-        (p.barcode && p.barcode.toLowerCase().includes(s))
-      );
+      filtered = smartSearchProducts(filtered, search.trim());
     }
 
     // Filter by category
@@ -255,20 +255,15 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
     // Always filter out of stock items
     filtered = filtered.filter(p => p.inStock && (p.warehouseStock === undefined || p.warehouseStock > 0));
 
-    // Apply sorting
-    filtered.sort((a, b) => {
-      const priceA = getProductEffectivePrice(a);
-      const priceB = getProductEffectivePrice(b);
-
-      if (sortBy === 'price_asc') {
-        return priceA - priceB;
-      } else if (sortBy === 'price_desc') {
-        return priceB - priceA;
-      } else if (sortBy === 'name_asc') {
-        return a.name.localeCompare(b.name);
-      }
-      return 0;
-    });
+    // Apply sorting: Only override order if explicit user sorting is chosen
+    if (sortBy === 'price_asc') {
+      filtered.sort((a, b) => getProductEffectivePrice(a) - getProductEffectivePrice(b));
+    } else if (sortBy === 'price_desc') {
+      filtered.sort((a, b) => getProductEffectivePrice(b) - getProductEffectivePrice(a));
+    } else if (sortBy === 'name_asc') {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    // Note: If sortBy is 'latest' and user searched, smartSearchProducts keeps the highest-relevance items on top!
 
     const total = filtered.length;
     const totalPages = Math.ceil(total / limit) || 1;

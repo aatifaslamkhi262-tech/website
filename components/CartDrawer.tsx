@@ -93,10 +93,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
               <button
                 type="button"
                 onClick={closeCart}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50/90 border border-emerald-300/80 hover:bg-emerald-100 hover:border-emerald-400 transition-all cursor-pointer shadow-2xs"
                 title="Continue Shopping"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
+                <ArrowLeft className="w-3.5 h-3.5 text-emerald-700" />
                 <span>Continue Shopping</span>
               </button>
               <button
@@ -239,9 +239,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onProceedToCheckout }) =
                 <button
                   type="button"
                   onClick={closeCart}
-                  className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-100 active:scale-[0.99] text-slate-700 hover:text-slate-900 font-semibold text-xs sm:text-sm py-2.5 px-4 rounded-xl border border-slate-300 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100/90 active:scale-[0.99] text-emerald-800 font-bold text-xs sm:text-sm py-2.5 px-4 rounded-xl border border-emerald-300/80 hover:border-emerald-400 transition-all cursor-pointer shadow-2xs"
                 >
-                  <ArrowLeft className="w-4 h-4 text-slate-500" />
+                  <ArrowLeft className="w-4 h-4 text-emerald-600" />
                   <span>Continue Shopping</span>
                 </button>
               </div>
