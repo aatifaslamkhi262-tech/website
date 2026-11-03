@@ -23,7 +23,7 @@ const SLIDES: Slide[] = [
     title: 'PlayStation 5 & Xbox Series X Consoles',
     subtitle: 'Next-Gen 4K gaming consoles with official warranty, verified serial numbers, and 24-hour nationwide delivery.',
     ctaText: 'Explore Consoles',
-    link: '/products?category=6a8ad5a068ae35d1a79d1a83',
+    link: '/category/consoles',
   },
   {
     id: 2,
@@ -32,7 +32,7 @@ const SLIDES: Slide[] = [
     title: 'PS5 & PS4 Game Disc Collection',
     subtitle: 'Tested, sanitized, and guaranteed authentic gaming CDs. Trade-in options and instant delivery across Pakistan.',
     ctaText: 'Browse Game CDs',
-    link: '/products?category=6a8aea066dd73e298cdb36da',
+    link: '/category/games',
   },
   {
     id: 3,
@@ -41,7 +41,7 @@ const SLIDES: Slide[] = [
     title: 'DualSense Controllers & Accessories',
     subtitle: 'Elevate your gaming with original wireless controllers, PULSE 3D headsets, faceplates, and digital cards.',
     ctaText: 'Shop Accessories',
-    link: '/products?category=6a8af3ad75f0085178374d75',
+    link: '/category/accessories',
   },
 ];
 
@@ -52,11 +52,11 @@ interface HeroCarouselProps {
 export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Auto-play carousel every 5 seconds
+  // Auto-play carousel every 8 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % SLIDES.length);
-    }, 5000);
+    }, 8000);
     return () => clearInterval(timer);
   }, []);
 
@@ -70,6 +70,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
       <div className="relative aspect-[16/9] sm:aspect-[20/9] lg:aspect-[22/9] min-h-[210px] sm:min-h-[340px]">
         {SLIDES.map((slide, idx) => {
           const isActive = idx === currentSlide;
+          // Only render Image for slide 0 or the currently active slide so hidden slides don't compete for initial network bandwidth
+          if (idx !== 0 && !isActive) return null;
 
           return (
             <div
@@ -84,9 +86,9 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
                 alt={slide.title}
                 fill
                 priority={idx === 0}
-                loading={idx === 0 ? undefined : 'lazy'}
+                fetchPriority={idx === 0 ? 'high' : 'auto'}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
-                quality={85}
+                quality={80}
                 className={`w-full h-full object-cover object-right sm:object-center transition-transform duration-[6000ms] ease-out ${
                   isActive ? 'scale-100' : 'scale-105'
                 }`}
@@ -164,6 +166,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
           <button
             key={idx}
             type="button"
+            aria-label={`Go to slide ${idx + 1}`}
             onClick={() => setCurrentSlide(idx)}
             className={`h-2 rounded-full transition-all cursor-pointer ${
               idx === currentSlide ? 'w-6 bg-[#0070D1]' : 'w-2 bg-white/50 hover:bg-white'

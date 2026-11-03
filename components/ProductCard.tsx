@@ -18,9 +18,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   const cartItem = cart.find(item => item.product._id === product._id);
   const cartQty = cartItem ? cartItem.quantity : 0;
 
-  const primaryImg = product.images && product.images.length > 0
+  const rawImg = product.images && product.images.length > 0
     ? (product.images.find(img => img.isPrimary)?.url || product.images[0]?.url || '')
     : '';
+
+  const primaryImg = rawImg.includes('res.cloudinary.com') && rawImg.includes('/upload/') && !rawImg.includes('/upload/f_auto')
+    ? rawImg.replace('/upload/', '/upload/f_auto,q_auto:good,w_400/')
+    : rawImg;
 
   const [hasImageError, setHasImageError] = useState<boolean>(false);
 
@@ -151,6 +155,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           <img
             src={primaryImg}
             alt={product.name}
+            width={280}
+            height={280}
+            decoding="async"
             onError={() => setHasImageError(true)}
             className="max-h-full max-w-full object-contain group-hover:scale-108 transition-transform duration-300"
             loading="lazy"
