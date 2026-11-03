@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/checkout', '/api/'],
       },
     ],
-    sitemap: 'https://pgsgameshop.online/sitemap.xml',
+    sitemap: 'https://www.pgsgameshop.online/sitemap.xml',
   };
 }
 

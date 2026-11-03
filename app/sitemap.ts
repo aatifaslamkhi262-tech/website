@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { fetchProducts, getProductSlug } from '@/lib/api';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://pgsgameshop.online';
+  const baseUrl = 'https://www.pgsgameshop.online';
 
   const staticPages: MetadataRoute.Sitemap = [
     {

@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const primaryImage = rawImage.startsWith('http')
     ? rawImage
-    : `https://pgsgameshop.online${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
+    : `https://www.pgsgameshop.online${rawImage.startsWith('/') ? '' : '/'}${rawImage}`;
 
   const priceStr = isPriceOnCall(product)
     ? 'Call for Price'
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const metaTitle = `${product.name} - ${priceStr} | PGS Game Shop Karachi`;
   const metaDesc = `Buy ${product.name} (${product.condition} condition) online in Pakistan for ${priceStr}. 100% Authentic, Warranty Verified, Express Nationwide Dispatch.`;
-  const canonicalUrl = `https://pgsgameshop.online/products/${getProductSlug(product)}`;
+  const canonicalUrl = `https://www.pgsgameshop.online/products/${getProductSlug(product)}`;
 
   return {
     title: metaTitle,
@@ -83,9 +83,9 @@ export default async function ProductDetailPage({ params }: Props) {
   const effectivePrice = getProductEffectivePrice(product);
   const rawImages = (product.images || []).map(img => img.url).filter(Boolean);
   const productImages = rawImages.length > 0
-    ? rawImages.map(img => (img.startsWith('http') ? img : `https://pgsgameshop.online${img.startsWith('/') ? '' : '/'}${img}`))
-    : ['https://pgsgameshop.online/logo2.png'];
-  const canonicalUrl = `https://pgsgameshop.online/products/${getProductSlug(product)}`;
+    ? rawImages.map(img => (img.startsWith('http') ? img : `https://www.pgsgameshop.online${img.startsWith('/') ? '' : '/'}${img}`))
+    : ['https://www.pgsgameshop.online/logo2.png'];
+  const canonicalUrl = `https://www.pgsgameshop.online/products/${getProductSlug(product)}`;
 
   const productJsonLd = {
     '@context': 'https://schema.org',

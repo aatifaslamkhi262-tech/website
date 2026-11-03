@@ -5,7 +5,7 @@ import { FloatingWhatsApp } from '@/components/FloatingWhatsApp';
 import { FlyingCartAnimationContainer } from '@/components/FlyingCartAnimation';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://pgsgameshop.online'),
+  metadataBase: new URL('https://www.pgsgameshop.online'),
   title: {
     default: 'PGS Game Shop | PS5 Price in Pakistan & Gaming Consoles Store',
     template: '%s | PGS Game Shop Pakistan',
@@ -22,18 +22,18 @@ export const metadata: Metadata = {
     'PGS Game Shop',
   ],
   alternates: {
-    canonical: 'https://pgsgameshop.online',
+    canonical: 'https://www.pgsgameshop.online',
   },
   openGraph: {
     title: 'PGS Game Shop | PS5 Price in Pakistan & Official Gaming Store',
     description: 'Buy PlayStation 5, Xbox Series X, original game discs, controllers, and gaming accessories with official warranty and nationwide delivery.',
-    url: 'https://pgsgameshop.online',
+    url: 'https://www.pgsgameshop.online',
     siteName: 'PGS Game Shop Karachi',
     locale: 'en_PK',
     type: 'website',
     images: [
       {
-        url: 'https://pgsgameshop.online/logo2.png',
+        url: 'https://www.pgsgameshop.online/logo2.png',
         width: 1200,
         height: 630,
         alt: 'PGS Game Shop Pakistan - PS5 & Gaming Store',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'PGS Game Shop | PS5 Price in Pakistan & Gaming Store',
     description: 'Buy PlayStation 5, Xbox Series X, original games & gear with warranty across Pakistan.',
-    images: ['https://pgsgameshop.online/logo2.png'],
+    images: ['https://www.pgsgameshop.online/logo2.png'],
   },
   robots: {
     index: true,
@@ -63,8 +63,8 @@ const storeJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'VideoGameStore',
   name: 'PGS Game Shop',
-  image: 'https://pgsgameshop.online/logo2.png',
-  url: 'https://pgsgameshop.online',
+  image: 'https://www.pgsgameshop.online/logo2.png',
+  url: 'https://www.pgsgameshop.online',
   telephone: '+92-312-2319157',
   priceRange: 'PKR',
   address: {
