@@ -171,6 +171,7 @@ export const Footer: React.FC = () => {
               <li><Link href="/category/games" className="hover:text-blue-400 transition-colors">PS5 & PS4 Game CDs</Link></li>
               <li><Link href="/category/controllers" className="hover:text-blue-400 transition-colors">Controllers</Link></li>
               <li><Link href="/category/accessories" className="hover:text-blue-400 transition-colors">Accessories & Gear</Link></li>
+              <li><Link href="/category/gift-cards" className="hover:text-blue-400 transition-colors">Gift Cards</Link></li>
               <li><Link href="/products?condition=Used" className="hover:text-blue-400 transition-colors">Used Collection</Link></li>
             </ul>
           </div>

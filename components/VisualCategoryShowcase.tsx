@@ -73,6 +73,19 @@ const CATEGORY_ITEMS: CategoryCardItem[] = [
     imageSrc: '/images/category_accessories.jpg',
     link: '/category/accessories',
   },
+  {
+    id: 'giftcards',
+    categoryId: '6ad5fe26a80297c3f58a4ec4',
+    title: 'Gift Cards',
+    shortTitle: 'Gift Cards',
+    subtitle: 'PSN, Xbox & Steam Vouchers',
+    badge: 'Instant Delivery',
+    badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
+    gradientBg: 'from-slate-950 via-slate-900 to-emerald-950/80',
+    borderColor: 'border-emerald-500/30 hover:border-emerald-400/80',
+    imageSrc: '/images/category_giftcards.jpg',
+    link: '/category/gift-cards',
+  },
 ];
 
 interface VisualCategoryShowcaseProps {
@@ -154,8 +167,8 @@ export const VisualCategoryShowcase: React.FC<VisualCategoryShowcaseProps> = ({
         })}
       </div>
 
-      {/* DESKTOP EXPERIENCE: Premium 4-Card Grid Banner with Custom Generated Product Images */}
-      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* DESKTOP EXPERIENCE: Premium 5-Card Grid Banner with Custom Generated Product Images */}
+      <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {CATEGORY_ITEMS.map((item) => {
           const isSelected = selectedCategory === item.categoryId;
 

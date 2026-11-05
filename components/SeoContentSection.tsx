@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Truck, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Truck, HelpCircle, CheckCircle2, ChevronDown } from 'lucide-react';
 
 export function SeoContentSection() {
   return (
@@ -81,30 +81,36 @@ export function SeoContentSection() {
         </div>
 
         <div className="space-y-3">
-          <details className="group border border-slate-200 rounded-xl p-4 [&_summary::-webkit-details-marker]:hidden bg-slate-50/50">
+          <details className="group border border-slate-200 rounded-xl p-4 [&_summary::-webkit-details-marker]:hidden bg-slate-50/50 hover:bg-slate-50 transition-colors">
             <summary className="flex cursor-pointer items-center justify-between text-slate-900 font-semibold text-sm">
               <span>What is the current PS5 price in Pakistan?</span>
-              <span className="transition group-open:rotate-180">▼</span>
+              <span className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-open:bg-blue-50 group-open:text-[#0070D1] transition-colors shrink-0 ml-3">
+                <ChevronDown className="w-4 h-4 transition-transform duration-200 group-open:rotate-180" />
+              </span>
             </summary>
             <p className="mt-3 text-xs sm:text-sm text-slate-600 leading-relaxed">
               PlayStation 5 prices in Pakistan fluctuate with currency exchange rates and import duties. Typically, the PS5 Slim Digital Edition ranges around Rs. 220,000 - 245,000, while the PS5 Slim Disc Edition ranges between Rs. 238,000 - 260,000. Check our live product listings above for daily updated prices.
             </p>
           </details>
 
-          <details className="group border border-slate-200 rounded-xl p-4 [&_summary::-webkit-details-marker]:hidden bg-slate-50/50">
+          <details className="group border border-slate-200 rounded-xl p-4 [&_summary::-webkit-details-marker]:hidden bg-slate-50/50 hover:bg-slate-50 transition-colors">
             <summary className="flex cursor-pointer items-center justify-between text-slate-900 font-semibold text-sm">
               <span>Where is PGS Game Shop physically located?</span>
-              <span className="transition group-open:rotate-180">▼</span>
+              <span className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-open:bg-blue-50 group-open:text-[#0070D1] transition-colors shrink-0 ml-3">
+                <ChevronDown className="w-4 h-4 transition-transform duration-200 group-open:rotate-180" />
+              </span>
             </summary>
             <p className="mt-3 text-xs sm:text-sm text-slate-600 leading-relaxed">
               Our walk-in retail store is located at Shop No. G19, Grace Shopping Mall, Opposite Bhayani Heights, Near Maskan Chowrangi, Gulshan-e-Iqbal, Karachi. Customers in Karachi are welcome to visit our shop to inspect consoles and games in person.
             </p>
           </details>
 
-          <details className="group border border-slate-200 rounded-xl p-4 [&_summary::-webkit-details-marker]:hidden bg-slate-50/50">
+          <details className="group border border-slate-200 rounded-xl p-4 [&_summary::-webkit-details-marker]:hidden bg-slate-50/50 hover:bg-slate-50 transition-colors">
             <summary className="flex cursor-pointer items-center justify-between text-slate-900 font-semibold text-sm">
               <span>Do you sell used or pre-owned PS5 games?</span>
-              <span className="transition group-open:rotate-180">▼</span>
+              <span className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-open:bg-blue-50 group-open:text-[#0070D1] transition-colors shrink-0 ml-3">
+                <ChevronDown className="w-4 h-4 transition-transform duration-200 group-open:rotate-180" />
+              </span>
             </summary>
             <p className="mt-3 text-xs sm:text-sm text-slate-600 leading-relaxed">
               Yes, we have an extensive collection of tested, 100% scratch-free pre-owned PS4 and PS5 game discs with original cases, as well as brand-new factory-sealed titles at budget-friendly prices.

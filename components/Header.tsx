@@ -27,14 +27,15 @@ function HeaderNavLinks({ pathname, searchQuery }: { pathname: string; searchQue
   const isGamesActive = pathname.startsWith('/category/games') || (pathname === '/products' && !search && (cat === '6a8aea066dd73e298cdb36da' || cat.includes('game') || cat.includes('cd')));
   const isControllersActive = pathname.startsWith('/category/controllers') || (pathname === '/products' && !search && (cat === '6a8ae13c5f408109bce576a6' || cat.includes('controller')));
   const isAccessoriesActive = pathname.startsWith('/category/accessories') || (pathname === '/products' && !search && (cat === '6a8af3ad75f0085178374d75' || cat.includes('access')));
+  const isGiftCardsActive = pathname.startsWith('/category/gift-cards') || (pathname === '/products' && !search && (cat === '6ad5fe26a80297c3f58a4ec4' || cat.includes('gift')));
   
-  const isCatalogActive = pathname === '/products' && !isConsolesActive && !isGamesActive && !isControllersActive && !isAccessoriesActive;
+  const isCatalogActive = pathname === '/products' && !isConsolesActive && !isGamesActive && !isControllersActive && !isAccessoriesActive && !isGiftCardsActive;
 
-  const activeStyle = 'text-[#0070D1] font-bold border-b-2 border-[#0070D1] pb-0.5 transition-all duration-200';
-  const inactiveStyle = 'text-slate-700 hover:text-[#0070D1] transition-all duration-200';
+  const activeStyle = 'text-[#0070D1] font-bold border-b-2 border-[#0070D1] pb-0.5 transition-all duration-200 whitespace-nowrap';
+  const inactiveStyle = 'text-slate-700 hover:text-[#0070D1] transition-all duration-200 whitespace-nowrap';
 
   return (
-    <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold">
+    <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-sm font-semibold">
       <Link href="/" className={isHomeActive ? activeStyle : inactiveStyle}>
         Home
       </Link>
@@ -53,16 +54,19 @@ function HeaderNavLinks({ pathname, searchQuery }: { pathname: string; searchQue
       <Link href="/category/accessories" className={isAccessoriesActive ? activeStyle : inactiveStyle}>
         Accessories
       </Link>
+      <Link href="/category/gift-cards" className={isGiftCardsActive ? activeStyle : inactiveStyle}>
+        Gift Cards
+      </Link>
     </nav>
   );
 }
 
 function HeaderNavFallback({ pathname }: { pathname: string }) {
-  const activeStyle = 'text-[#0070D1] font-bold border-b-2 border-[#0070D1] pb-0.5';
-  const inactiveStyle = 'text-slate-700 hover:text-[#0070D1]';
+  const activeStyle = 'text-[#0070D1] font-bold border-b-2 border-[#0070D1] pb-0.5 whitespace-nowrap';
+  const inactiveStyle = 'text-slate-700 hover:text-[#0070D1] whitespace-nowrap';
 
   return (
-    <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold">
+    <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-sm font-semibold">
       <Link href="/" className={pathname === '/' ? activeStyle : inactiveStyle}>
         Home
       </Link>
@@ -80,6 +84,9 @@ function HeaderNavFallback({ pathname }: { pathname: string }) {
       </Link>
       <Link href="/category/accessories" className={inactiveStyle}>
         Accessories
+      </Link>
+      <Link href="/category/gift-cards" className={inactiveStyle}>
+        Gift Cards
       </Link>
     </nav>
   );

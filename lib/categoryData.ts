@@ -103,5 +103,25 @@ export const CATEGORY_CONFIGS: Record<string, CategorySeoConfig> = {
       },
     ],
   },
+  'gift-cards': {
+    id: '6ad5fe26a80297c3f58a4ec4',
+    slug: 'gift-cards',
+    name: 'Gift Cards',
+    metaTitle: 'PlayStation PSN, Xbox & Steam Gift Cards in Pakistan | PGS Game Shop',
+    metaDesc: 'Buy genuine digital PSN gift cards (USA, UK, UAE), Xbox Live and Steam wallet codes with instant delivery in Pakistan at PGS Game Shop.',
+    heading: 'Digital Gaming Gift Cards & PSN Wallet Vouchers',
+    subheading: 'Instant digital delivery for PlayStation PSN (US/UK/UAE), Steam, and Xbox codes with 100% redemption guarantee.',
+    seoText: 'Top up your gaming wallet with genuine digital gift cards from PGS Game Shop Karachi. We offer PlayStation Store (PSN) cards in USD, GBP, and AED denominations, along with Xbox and Steam wallet vouchers. Codes are verified and delivered with instant verification.',
+    faqs: [
+      {
+        question: 'How do I receive my Gift Card code after purchase?',
+        answer: 'Gift card codes are digitally verified and delivered directly to your WhatsApp or email upon order confirmation.',
+      },
+      {
+        question: 'Are your PSN gift cards region specific?',
+        answer: 'Yes, ensure your PlayStation account region matches the card currency and region (e.g., US PSN card for USA account, UK for UK account, UAE for UAE account).',
+      },
+    ],
+  },
 };
 

@@ -14,7 +14,7 @@ import { OrderSuccessModal } from '@/components/OrderSuccessModal';
 import { Product, ProductCondition, CheckoutResponseData } from '@/lib/types';
 import { CategorySeoConfig } from '@/lib/categoryData';
 import { useCart } from '@/context/CartContext';
-import { ChevronRight, Home, ShieldCheck, Sparkles, HelpCircle, PackageOpen } from 'lucide-react';
+import { ChevronRight, ChevronDown, Home, ShieldCheck, Sparkles, HelpCircle, PackageOpen } from 'lucide-react';
 
 interface Props {
   config: CategorySeoConfig;
@@ -38,36 +38,36 @@ export default function CategoryClientPage({ config, initialProducts }: Props) {
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-900 pb-20 md:pb-0">
       <Header onSelectProduct={p => setQuickViewProduct(p)} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-12 space-y-4 sm:space-y-6 lg:space-y-8">
         
         {/* Breadcrumb Navigation */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-          <Link href="/" className="flex items-center gap-1 hover:text-[#0070D1] transition-colors">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 font-medium overflow-x-auto no-scrollbar whitespace-nowrap">
+          <Link href="/" className="flex items-center gap-1 hover:text-[#0070D1] transition-colors shrink-0">
             <Home className="w-3.5 h-3.5" />
             <span>Home</span>
           </Link>
-          <ChevronRight className="w-3 h-3 text-slate-400" />
-          <Link href="/products" className="hover:text-[#0070D1] transition-colors">
+          <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
+          <Link href="/products" className="hover:text-[#0070D1] transition-colors shrink-0">
             Categories
           </Link>
-          <ChevronRight className="w-3 h-3 text-slate-400" />
-          <span className="text-slate-900 font-bold">{config.name}</span>
+          <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
+          <span className="text-slate-900 font-bold shrink-0">{config.name}</span>
         </nav>
 
         {/* Category SEO Hero Banner */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xs space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#0070D1] text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" /> Official Category Store
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-slate-200/80 shadow-xs space-y-2.5 sm:space-y-3 relative overflow-hidden">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-blue-50 text-[#0070D1] text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Official Category Store
           </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-lg sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug sm:leading-tight">
             {config.heading}
           </h1>
-          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-3xl">
+          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-3xl line-clamp-2 sm:line-clamp-none">
             {config.subheading}
           </p>
 
-          {/* Condition Filter Pills */}
-          <div className="pt-3 flex flex-wrap items-center gap-2">
+          {/* Condition Filter Pills - Smooth horizontal scrolling on mobile so pills never awkwardly drop/break onto multiple lines */}
+          <div className="pt-1.5 sm:pt-2 flex items-center gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 py-1">
             {(['All', 'New', 'Used', 'Refurbished'] as (ProductCondition | 'All')[]).map((cond) => {
               const count = cond === 'All'
                 ? initialProducts.length
@@ -80,13 +80,18 @@ export default function CategoryClientPage({ config, initialProducts }: Props) {
                 <button
                   key={cond}
                   onClick={() => setSelectedCondition(cond)}
-                  className={`text-xs px-3.5 py-1.5 rounded-full font-bold transition-all ${
+                  className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
                     isSelected
                       ? 'bg-[#0070D1] text-white shadow-xs'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
-                  {cond === 'All' ? 'All Items' : cond} ({count})
+                  <span>{cond === 'All' ? 'All Items' : cond}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+                  }`}>
+                    {count}
+                  </span>
                 </button>
               );
             })}
@@ -119,7 +124,7 @@ export default function CategoryClientPage({ config, initialProducts }: Props) {
         )}
 
         {/* Rich SEO Content & Buying Guide */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-2xs space-y-6">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-slate-200/80 shadow-2xs space-y-4 sm:space-y-6">
           <div className="space-y-2">
             <h2 className="text-lg sm:text-xl font-bold text-slate-900">
               About {config.name} at PGS Game Shop
@@ -139,13 +144,15 @@ export default function CategoryClientPage({ config, initialProducts }: Props) {
                 {config.faqs.map((faq, idx) => (
                   <details
                     key={idx}
-                    className="group border border-slate-200 rounded-xl p-3.5 [&_summary::-webkit-details-marker]:hidden bg-slate-50/50"
+                    className="group border border-slate-200 rounded-xl p-3.5 [&_summary::-webkit-details-marker]:hidden bg-slate-50/50 hover:bg-slate-50 transition-colors"
                   >
                     <summary className="flex cursor-pointer items-center justify-between text-slate-900 font-semibold text-xs sm:text-sm">
-                      <span>{faq.question}</span>
-                      <span className="transition group-open:rotate-180">▼</span>
+                      <span className="pr-2">{faq.question}</span>
+                      <span className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-open:bg-blue-50 group-open:text-[#0070D1] transition-colors shrink-0">
+                        <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200 group-open:rotate-180" />
+                      </span>
                     </summary>
-                    <p className="mt-2.5 text-xs text-slate-600 leading-relaxed">
+                    <p className="mt-2.5 text-xs text-slate-600 leading-relaxed pr-2">
                       {faq.answer}
                     </p>
                   </details>
