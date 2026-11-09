@@ -46,8 +46,6 @@ export async function fetchCategories(): Promise<Category[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/api/public/categories`, {
       headers: {
-        'x-api-key': API_KEY,
-        'Authorization': `Bearer ${API_KEY}`,
         'Accept': 'application/json',
       },
       next: { revalidate: 300 }
@@ -91,18 +89,7 @@ async function ensureCatalogCache(): Promise<Product[]> {
 
   warmingPromise = (async () => {
     try {
-      // 1. Check Upstash Redis RAM Cache for Instant sub-10ms response
-      const redisCatalog = await redisGet<Product[]>('pgs:catalog:v1');
-      if (redisCatalog && Array.isArray(redisCatalog) && redisCatalog.length > 0) {
-        globalCatalogCache = {
-          timestamp: Date.now(),
-          products: redisCatalog,
-          categories: globalCatalogCache?.categories || [],
-        };
-        return redisCatalog;
-      }
-
-      // 2. Check browser localStorage cache if available
+      // 1. Check browser localStorage cache first if available (0ms synchronous, zero network calls)
       if (typeof window !== 'undefined') {
         try {
           const cached = localStorage.getItem('pgs_catalog_cache_v3');
@@ -118,26 +105,51 @@ async function ensureCatalogCache(): Promise<Product[]> {
         }
       }
 
-      const pages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      const promises = pages.map(p =>
-        fetch(`${API_BASE_URL}/api/public/products?page=${p}&limit=100`, {
+      // 2. Check Upstash Redis RAM Cache for Instant sub-10ms response
+      const redisCatalog = await redisGet<Product[]>('pgs:catalog:v1');
+      if (redisCatalog && Array.isArray(redisCatalog) && redisCatalog.length > 0) {
+        globalCatalogCache = {
+          timestamp: Date.now(),
+          products: redisCatalog,
+          categories: globalCatalogCache?.categories || [],
+        };
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('pgs_catalog_cache_v3', JSON.stringify(globalCatalogCache));
+          } catch (e) {}
+        }
+        return redisCatalog;
+      }
+
+      // 3. Fetch Page 1 first (CDN-cacheable, no custom auth headers to avoid CORS preflight & CDN bypass)
+      const fetchPage = (pageNum: number) =>
+        fetch(`${API_BASE_URL}/api/public/products?page=${pageNum}&limit=100`, {
           headers: {
-            'x-api-key': API_KEY,
-            'Authorization': `Bearer ${API_KEY}`,
             'Accept': 'application/json',
           },
-          cache: 'no-store'
-        }).then(res => res.json()).catch(() => null)
-      );
+          next: { revalidate: 120 }
+        }).then(res => (res.ok ? res.json() : null)).catch(() => null);
 
-      const results = await Promise.all(promises);
+      const firstPageRes = await fetchPage(1);
       const allProducts: Product[] = [];
 
-      results.forEach(r => {
-        if (r && r.success && Array.isArray(r.data)) {
-          allProducts.push(...r.data);
+      if (firstPageRes && firstPageRes.success && Array.isArray(firstPageRes.data)) {
+        allProducts.push(...firstPageRes.data);
+
+        const totalPages = Math.min(10, Math.max(1, firstPageRes.pagination?.totalPages || 1));
+        if (totalPages > 1) {
+          const remainingPages: number[] = [];
+          for (let p = 2; p <= totalPages; p++) {
+            remainingPages.push(p);
+          }
+          const results = await Promise.all(remainingPages.map(p => fetchPage(p)));
+          results.forEach(r => {
+            if (r && r.success && Array.isArray(r.data)) {
+              allProducts.push(...r.data);
+            }
+          });
         }
-      });
+      }
 
       if (allProducts.length > 0) {
         const uniqueMap = new Map<string, Product>();
@@ -297,8 +309,6 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
 
     const res = await fetch(`${API_BASE_URL}/api/public/products?${query.toString()}`, {
       headers: {
-        'x-api-key': API_KEY,
-        'Authorization': `Bearer ${API_KEY}`,
         'Accept': 'application/json',
       },
       next: { revalidate: 120 }
@@ -362,6 +372,11 @@ export async function submitCheckout(payload: CheckoutPayload, idempotencyKey?: 
 
   // Clear local & Upstash Redis catalog cache upon order submission (0ms real-time sync!)
   globalCatalogCache = null;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('pgs_catalog_cache_v3');
+    } catch (e) {}
+  }
   redisDel('pgs:catalog:v1').catch(() => {});
 
   return json;
