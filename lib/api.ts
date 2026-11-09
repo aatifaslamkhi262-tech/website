@@ -121,9 +121,9 @@ async function ensureCatalogCache(): Promise<Product[]> {
         return redisCatalog;
       }
 
-      // 3. Fetch Page 1 first (CDN-cacheable, no custom auth headers to avoid CORS preflight & CDN bypass)
+      // 3. Single-Request Catalog Fetch (limit=1000 & inStockOnly=true, CDN-cacheable, no custom auth headers)
       const fetchPage = (pageNum: number) =>
-        fetch(`${API_BASE_URL}/api/public/products?page=${pageNum}&limit=100`, {
+        fetch(`${API_BASE_URL}/api/public/products?page=${pageNum}&limit=1000&inStockOnly=true`, {
           headers: {
             'Accept': 'application/json',
           },
@@ -136,7 +136,8 @@ async function ensureCatalogCache(): Promise<Product[]> {
       if (firstPageRes && firstPageRes.success && Array.isArray(firstPageRes.data)) {
         allProducts.push(...firstPageRes.data);
 
-        const totalPages = Math.min(10, Math.max(1, firstPageRes.pagination?.totalPages || 1));
+        // Safety fallback if in-stock catalog ever exceeds 1,000 items in the future
+        const totalPages = Math.min(5, Math.max(1, firstPageRes.pagination?.totalPages || 1));
         if (totalPages > 1) {
           const remainingPages: number[] = [];
           for (let p = 2; p <= totalPages; p++) {
@@ -303,6 +304,7 @@ export async function fetchProducts(params: ProductQueryParams = {}): Promise<Pr
     const query = new URLSearchParams();
     query.set('page', page.toString());
     query.set('limit', limit.toString());
+    query.set('inStockOnly', 'true');
     if (search.trim()) query.set('search', search.trim());
     if (category && category !== 'All') query.set('category', category);
     if (condition && condition !== 'All') query.set('condition', condition);
