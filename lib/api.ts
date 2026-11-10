@@ -414,7 +414,7 @@ export async function fetchProductBySlug(slugParam: string): Promise<Product | n
   const matchId = decoded.match(/([a-f0-9]{24})$/i);
   const targetId = matchId ? matchId[1] : '';
 
-  const res = await fetchProducts({ limit: 500 });
+  const res = await fetchProducts({ limit: 1000 });
   if (!res.success || !res.data) return null;
 
   const products = res.data;
@@ -442,5 +442,5 @@ export async function fetchProductBySlug(slugParam: string): Promise<Product | n
 
   if (foundByName) return foundByName;
 
-  return products[0] || null;
+  return null;
 }

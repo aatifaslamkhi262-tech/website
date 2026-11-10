@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 import { fetchProducts, getProductSlug } from '@/lib/api';
 
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.pgsgameshop.online';
 
@@ -42,6 +44,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     },
     {
+      url: `${baseUrl}/category/gift-cards`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/products`,
       lastModified: new Date(),
       changeFrequency: 'daily',
@@ -56,13 +64,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const productsRes = await fetchProducts({ limit: 100 });
-    const productRoutes: MetadataRoute.Sitemap = (productsRes.data || []).map((product) => ({
-      url: `${baseUrl}/products/${getProductSlug(product)}`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    }));
+    const productsRes = await fetchProducts({ limit: 1000 });
+    const productRoutes: MetadataRoute.Sitemap = (productsRes.data || []).map((product) => {
+      const updatedDate = (product as any).updatedAt || (product as any).createdAt;
+      return {
+        url: `${baseUrl}/products/${getProductSlug(product)}`,
+        lastModified: updatedDate ? new Date(updatedDate) : new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      };
+    });
 
     return [...staticPages, ...productRoutes];
   } catch (err) {
@@ -70,4 +81,3 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return staticPages;
   }
 }
-

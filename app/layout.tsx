@@ -28,9 +28,6 @@ export const metadata: Metadata = {
     'Used PS5 Games Karachi',
     'PGS Game Shop',
   ],
-  alternates: {
-    canonical: 'https://www.pgsgameshop.online',
-  },
   openGraph: {
     title: 'PGS Game Shop | PS5 Price in Pakistan & Official Gaming Store',
     description: 'Buy PlayStation 5, Xbox Series X, original game discs, controllers, and gaming accessories with official warranty and nationwide delivery.',
@@ -76,7 +73,7 @@ const storeJsonLd = {
   priceRange: 'PKR',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Shop No. G19, Grace Shopping Mall, Opp Bhayani Heights, Near Maskan Chowrangi, Gulshan-e-Iqbal',
+    streetAddress: 'Shop No. G-14, Grace Shopping Mall, Main Maskan Chowrangi, Gulshan-e-Iqbal Block 4',
     addressLocality: 'Karachi',
     addressRegion: 'Sindh',
     postalCode: '75300',
@@ -90,14 +87,14 @@ const storeJsonLd = {
   openingHoursSpecification: [
     {
       '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      opens: '12:00',
-      closes: '23:00',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: '14:30',
+      closes: '23:30',
     },
   ],
   sameAs: [
-    'https://www.facebook.com',
-    'https://www.instagram.com',
+    'https://www.instagram.com/pgs_gameshop/',
+    'https://www.youtube.com/@PGSGameShopVlog',
   ],
 };
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { fetchProducts, fetchCategories } from '@/lib/api';
+import { fetchProducts, fetchCategories, getProductSlug } from '@/lib/api';
 import { CATEGORY_CONFIGS, CategorySeoConfig } from '@/lib/categoryData';
 import CategoryClientPage from './CategoryClientPage';
 
@@ -123,11 +123,11 @@ export default async function CategoryPage({ params }: Props) {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: config.heading,
-    itemListElement: products.slice(0, 10).map((product, index) => ({
+    itemListElement: products.slice(0, 24).map((product, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       name: product.name,
-      url: `https://www.pgsgameshop.online/products/${product._id}`,
+      url: `https://www.pgsgameshop.online/products/${getProductSlug(product)}`,
     })),
   };
 
