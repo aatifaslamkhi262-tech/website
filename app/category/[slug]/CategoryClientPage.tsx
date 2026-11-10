@@ -14,7 +14,7 @@ import { OrderSuccessModal } from '@/components/OrderSuccessModal';
 import { Product, ProductCondition, CheckoutResponseData } from '@/lib/types';
 import { CategorySeoConfig } from '@/lib/categoryData';
 import { useCart } from '@/context/CartContext';
-import { ChevronRight, ChevronDown, Home, ShieldCheck, Sparkles, HelpCircle, PackageOpen } from 'lucide-react';
+import { ChevronRight, ChevronDown, ChevronUp, Home, ShieldCheck, Sparkles, HelpCircle, PackageOpen } from 'lucide-react';
 
 interface Props {
   config: CategorySeoConfig;
@@ -29,6 +29,7 @@ export default function CategoryClientPage({ config, initialProducts }: Props) {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [orderSuccessData, setOrderSuccessData] = useState<CheckoutResponseData | null>(null);
+  const [isMobileSeoExpanded, setIsMobileSeoExpanded] = useState<boolean>(false);
 
   const filteredProducts = selectedCondition === 'All'
     ? initialProducts
@@ -126,18 +127,26 @@ export default function CategoryClientPage({ config, initialProducts }: Props) {
         {/* Rich SEO Content & Buying Guide */}
         <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-slate-200/80 shadow-2xs space-y-4 sm:space-y-6">
           <div className="space-y-2">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+            <h2 className="text-base sm:text-xl font-bold text-slate-900">
               About {config.name} at PGS Game Shop
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <p
+              className={`text-xs sm:text-sm text-slate-600 leading-relaxed ${
+                !isMobileSeoExpanded ? 'line-clamp-3 sm:line-clamp-none' : ''
+              }`}
+            >
               {config.seoText}
             </p>
           </div>
 
-          {/* FAQs */}
+          {/* FAQs (100% in DOM for Google SEO; collapsed by default on mobile, always open on desktop) */}
           {config.faqs.length > 0 && (
-            <div className="space-y-3 pt-4 border-t border-slate-100">
-              <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
+            <div
+              className={`${
+                isMobileSeoExpanded ? 'block' : 'hidden sm:block'
+              } space-y-3 pt-4 border-t border-slate-100`}
+            >
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-sm sm:text-base">
                 <HelpCircle className="w-4 h-4 text-[#0070D1]" /> Frequently Asked Questions
               </div>
               <div className="space-y-2.5">
@@ -160,6 +169,22 @@ export default function CategoryClientPage({ config, initialProducts }: Props) {
               </div>
             </div>
           )}
+
+          {/* Mobile-Only Toggle Button */}
+          <div className="sm:hidden pt-1 border-t border-slate-100 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setIsMobileSeoExpanded(prev => !prev)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0070D1] bg-blue-50/80 hover:bg-blue-100 px-4 py-2 rounded-xl transition-colors cursor-pointer"
+            >
+              <span>{isMobileSeoExpanded ? 'Show Less' : 'Read Buying Guide & FAQs'}</span>
+              {isMobileSeoExpanded ? (
+                <ChevronUp className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5" />
+              )}
+            </button>
+          </div>
         </div>
 
       </main>

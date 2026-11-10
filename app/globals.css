@@ -101,4 +101,21 @@
   animation: cartBumpKeyframes 0.4s ease-in-out;
 }
 
+/* Smooth Bottom-to-Top Calendar Number Roll Animation */
+@keyframes slideUpTickKeyframes {
+  0% {
+    transform: translateY(85%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up-tick {
+  animation: slideUpTickKeyframes 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
 

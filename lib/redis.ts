@@ -7,6 +7,11 @@ const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAABISfAAIgcDF
  */
 export async function redisGet<T = any>(key: string): Promise<T | null> {
   try {
+    const fetchCachingOptions: RequestInit =
+      typeof window !== 'undefined'
+        ? { cache: 'no-store' }
+        : { next: { revalidate: 60 } };
+
     const res = await fetch(REDIS_URL, {
       method: 'POST',
       headers: {
@@ -14,7 +19,7 @@ export async function redisGet<T = any>(key: string): Promise<T | null> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(['GET', key]),
-      cache: 'no-store',
+      ...fetchCachingOptions,
     });
 
     if (!res.ok) return null;
@@ -38,6 +43,17 @@ export async function redisGet<T = any>(key: string): Promise<T | null> {
 export async function redisSet(key: string, value: any, ttlSeconds: number = 45): Promise<boolean> {
   try {
     const valString = typeof value === 'string' ? value : JSON.stringify(value);
+    const fetchCachingOptions: RequestInit =
+      typeof window !== 'undefined'
+        ? { cache: 'no-store' }
+        : { next: { revalidate: 0 } };
+
+    // On Server ISR routes, avoid triggering Next.js static-to-dynamic error
+    const serverSafeOptions: RequestInit =
+      typeof window !== 'undefined'
+        ? fetchCachingOptions
+        : { next: { revalidate: 60 } };
+
     const res = await fetch(REDIS_URL, {
       method: 'POST',
       headers: {
@@ -45,7 +61,7 @@ export async function redisSet(key: string, value: any, ttlSeconds: number = 45)
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(['SET', key, valString, 'EX', ttlSeconds]),
-      cache: 'no-store',
+      ...serverSafeOptions,
     });
 
     if (!res.ok) return false;
@@ -66,7 +82,7 @@ export async function redisDel(key: string): Promise<boolean> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(['DEL', key]),
-      cache: 'no-store',
+      ...(typeof window !== 'undefined' ? { cache: 'no-store' } : { next: { revalidate: 0 } }),
     });
 
     if (!res.ok) return false;
