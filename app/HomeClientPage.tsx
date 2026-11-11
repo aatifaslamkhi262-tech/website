@@ -213,7 +213,7 @@ export default function HomeClientPage({
 
             <Link
               href="/products"
-              className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors shrink-0 whitespace-nowrap pb-0.5"
+              className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors shrink-0 whitespace-nowrap pb-0.5"
             >
               <span>View All</span> <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -282,7 +282,7 @@ export default function HomeClientPage({
 
             <Link
               href="/category/games"
-              className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors shrink-0 whitespace-nowrap pb-0.5"
+              className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors shrink-0 whitespace-nowrap pb-0.5"
             >
               <span>View All</span> <ArrowRight className="w-3.5 h-3.5" />
             </Link>

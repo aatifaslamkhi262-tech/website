@@ -420,6 +420,7 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                 <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
+                  aria-label="Search products, SKUs"
                   placeholder="Search products, SKUs..."
                   value={localSearch}
                   onFocus={() => {
@@ -434,11 +435,12 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                     }, 200);
                   }}
                   onChange={e => setLocalSearch(e.target.value)}
-                  className="w-full h-10 pl-9 pr-8 text-xs sm:text-sm leading-normal bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 placeholder:text-slate-400 font-medium transition-all"
+                  className="w-full h-10 pl-9 pr-8 text-xs sm:text-sm leading-normal bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 placeholder:text-slate-500 font-medium transition-all"
                 />
                 {localSearch && (
                   <button
                     type="button"
+                    aria-label="Clear search"
                     onClick={() => {
                       setLocalSearch('');
                       onSearchChange?.('');
@@ -460,6 +462,8 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
             {/* Cart CTA */}
             <button
               id="header-cart-btn"
+              type="button"
+              aria-label="Open shopping cart"
               onClick={handleCartTrigger}
               className="relative w-10 h-10 sm:w-auto sm:h-auto flex items-center justify-center gap-2 bg-[#0070D1] hover:bg-[#005bb5] active:scale-95 text-white text-xs sm:text-sm font-bold sm:px-4 sm:py-2.5 rounded-xl shadow-sm transition-all shrink-0 cursor-pointer"
             >
@@ -482,6 +486,7 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
+              aria-label="Search products"
               placeholder="Search products..."
               value={localSearch}
               onFocus={() => {
@@ -496,11 +501,12 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                 }, 200);
               }}
               onChange={e => setLocalSearch(e.target.value)}
-              className="w-full h-10 pl-10 pr-10 text-sm leading-normal bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 placeholder:text-slate-400 font-medium transition-colors"
+              className="w-full h-10 pl-10 pr-10 text-sm leading-normal bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0070D1] text-slate-900 placeholder:text-slate-500 font-medium transition-colors"
             />
             {localSearch && (
               <button
                 type="button"
+                aria-label="Clear search"
                 onClick={() => {
                   setLocalSearch('');
                   onSearchChange?.('');

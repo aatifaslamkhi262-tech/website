@@ -139,6 +139,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
         {/* Quick View Button */}
         <button
           type="button"
+          aria-label="Quick View Modal"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -178,7 +179,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
       <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2.5">
         <div>
           {/* Subtitle */}
-          <div className="flex items-center justify-between text-[9px] sm:text-[11px] text-slate-400 font-bold tracking-wider uppercase mb-1">
+          <div className="flex items-center justify-between text-[9px] sm:text-[11px] text-slate-500 font-bold tracking-wider uppercase mb-1">
             <span className="truncate max-w-[80px] text-blue-700 font-semibold">{product.brand || 'PGS'}</span>
             <span className="truncate max-w-[80px]">{categoryName}</span>
           </div>
@@ -205,7 +206,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
               <div className="flex flex-col">
                 {/* Original Selling Price (Cut / Strike-through) */}
                 {originalPrice && originalPrice > finalPrice && (
-                  <span className="text-[10px] sm:text-xs text-slate-400 line-through font-medium leading-none">
+                  <span className="text-[10px] sm:text-xs text-slate-500 line-through font-medium leading-none">
                     {formatPKR(originalPrice)}
                   </span>
                 )}

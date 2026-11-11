@@ -285,37 +285,43 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
         })}
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows (Desktop & Tablet only so they never overlap mobile calendar timer) */}
       <button
         onClick={prevSlide}
         type="button"
-        className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 bg-slate-900/60 hover:bg-slate-900 text-white p-1.5 sm:p-2 rounded-full border border-white/10 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
+        aria-label="Previous Slide"
+        className="hidden sm:flex items-center justify-center absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-slate-900/60 hover:bg-slate-900 text-white p-2 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
         title="Previous Slide"
       >
-        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+        <ChevronLeft className="w-5 h-5" />
       </button>
 
       <button
         onClick={nextSlide}
         type="button"
-        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 bg-slate-900/60 hover:bg-slate-900 text-white p-1.5 sm:p-2 rounded-full border border-white/10 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
+        aria-label="Next Slide"
+        className="hidden sm:flex items-center justify-center absolute right-3 top-1/2 -translate-y-1/2 z-20 bg-slate-900/60 hover:bg-slate-900 text-white p-2 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
         title="Next Slide"
       >
-        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+        <ChevronRight className="w-5 h-5" />
       </button>
 
-      {/* Carousel Dot Indicators */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+      {/* Carousel Dot Indicators (24x24px accessible touch target with sleek inner pill) */}
+      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1">
         {SLIDES.map((_, idx) => (
           <button
             key={idx}
             type="button"
             aria-label={`Go to slide ${idx + 1}`}
             onClick={() => setCurrentSlide(idx)}
-            className={`h-2 rounded-full transition-all cursor-pointer ${
-              idx === currentSlide ? 'w-6 bg-[#0070D1]' : 'w-2 bg-white/50 hover:bg-white'
-            }`}
-          />
+            className="min-w-[24px] min-h-[24px] flex items-center justify-center cursor-pointer"
+          >
+            <span
+              className={`h-2 rounded-full transition-all block ${
+                idx === currentSlide ? 'w-6 bg-[#0070D1]' : 'w-2 bg-white/60 hover:bg-white'
+              }`}
+            />
+          </button>
         ))}
       </div>
 
