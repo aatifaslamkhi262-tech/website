@@ -1,18 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import Link from 'next/link';
 import { Product, ProductCondition } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
 import { getProductEffectivePrice, isPriceOnCall, getProductSlug } from '@/lib/api';
 import { ShoppingBag, Eye, Check, X, Gamepad2, PhoneCall, Tag, Sparkles, Plus, Minus } from 'lucide-react';
 
+const cardPkrFormatter = new Intl.NumberFormat('en-PK', {
+  style: 'currency',
+  currency: 'PKR',
+  maximumFractionDigits: 0,
+});
+
+function formatPKR(val: number): string {
+  return cardPkrFormatter.format(val).replace('PKR', 'Rs.');
+}
+
 interface ProductCardProps {
   product: Product;
   onQuickView?: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
+export const ProductCard: React.FC<ProductCardProps> = memo(({ product, onQuickView }) => {
   const { cart, addToCart, updateQuantity } = useCart();
 
   const cartItem = cart.find(item => item.product._id === product._id);
@@ -70,14 +80,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   );
   const originalPrice = hasDiscount ? product.sellingPrice : product.originalPrice;
 
-  const formatPKR = (val: number) => {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
-      maximumFractionDigits: 0,
-    }).format(val).replace('PKR', 'Rs.');
-  };
-
   const categoryName = typeof product.category === 'object' && product.category !== null
     ? product.category.name
     : product.category || 'Gaming';
@@ -99,6 +101,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
     sellingPrice: finalPrice
   };
 
+  const productSlugUrl = `/products/${getProductSlug(product)}`;
+
   return (
     <div className="bg-white rounded-xl border border-slate-200/90 hover:border-[#0070D1]/50 shadow-2xs hover:shadow-xl hover:shadow-[#0070D1]/15 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden group relative">
       
@@ -111,7 +115,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
 
       {/* Top Media Container */}
       <Link
-        href={`/products/${getProductSlug(product)}`}
+        href={productSlugUrl}
+        prefetch={false}
         className="relative w-full aspect-[4/3] bg-slate-50/80 p-3 sm:p-4 flex items-center justify-center cursor-pointer border-b border-slate-100 overflow-hidden block"
       >
         {/* Grade Badge Overlay (Top Left) */}
@@ -186,7 +191,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
 
           {/* Title */}
           <Link
-            href={`/products/${getProductSlug(product)}`}
+            href={productSlugUrl}
+            prefetch={false}
             className="font-bold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-[#0070D1] cursor-pointer transition-colors block"
             title={product.name}
           >
@@ -289,4 +295,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
 
     </div>
   );
-};
+});
+
+ProductCard.displayName = 'ProductCard';

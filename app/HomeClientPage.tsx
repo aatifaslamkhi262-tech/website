@@ -374,7 +374,12 @@ export default function HomeClientPage({
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav activeTab="home" onTabSelect={tab => {
         if (tab === 'cart') openCart();
-        else if (tab === 'search' || tab === 'categories') router.push('/products');
+        else if (tab === 'search') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          const searchInput = document.getElementById('mobile-search-input') as HTMLInputElement | null;
+          if (searchInput) searchInput.focus();
+          else router.push('/products');
+        } else if (tab === 'categories') router.push('/products');
       }} />
 
       {/* Footer */}

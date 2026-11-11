@@ -217,7 +217,12 @@ export default function CategoryClientPage({ config, initialProducts }: Props) {
         onTabSelect={tab => {
           if (tab === 'cart') openCart();
           else if (tab === 'home') router.push('/');
-          else if (tab === 'search') router.push('/products');
+          else if (tab === 'search') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const searchInput = document.getElementById('mobile-search-input') as HTMLInputElement | null;
+            if (searchInput) searchInput.focus();
+            else router.push('/products');
+          }
         }}
       />
 

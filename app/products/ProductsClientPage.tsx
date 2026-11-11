@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense, memo } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
@@ -12,7 +12,7 @@ import { ProductDetailModal } from '@/components/ProductDetailModal';
 import { CartDrawer } from '@/components/CartDrawer';
 import { CheckoutModal } from '@/components/CheckoutModal';
 import { OrderSuccessModal } from '@/components/OrderSuccessModal';
-import { fetchCategories, fetchProducts, getProductSlug } from '@/lib/api';
+import { fetchCategories, fetchProducts, getProductSlug, seedCatalogCache, isCatalogCacheWarm } from '@/lib/api';
 import { Product, Category, ProductCondition, PaginationMeta, CheckoutResponseData } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
 import { VisualCategoryShowcase } from '@/components/VisualCategoryShowcase';
@@ -24,12 +24,41 @@ interface ProductsClientPageProps {
   allCatalogProducts?: Product[];
 }
 
+// Memoized SEO Catalog Index so typing in search never re-reconciles 426 <Link> nodes
+const QuickCatalogIndex = memo(function QuickCatalogIndex({ items }: { items: Product[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <section className="mt-12 mb-8 bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6">
+      <h2 className="text-sm font-bold text-slate-900 mb-3">
+        Quick Product Index ({items.length} Available Items)
+      </h2>
+      <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pr-1 text-[11px]">
+        {items.map(item => (
+          <Link
+            key={item._id}
+            href={`/products/${getProductSlug(item)}`}
+            prefetch={false}
+            className="text-slate-600 hover:text-[#0070D1] bg-slate-50 hover:bg-blue-50 px-2.5 py-1 rounded-lg border border-slate-200/60 transition-colors truncate max-w-[240px]"
+          >
+            {item.name}
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+});
+
 function CatalogContent({
   initialCategories = [],
   initialProducts = [],
   initialPagination = { total: 0, page: 1, limit: 24, totalPages: 1 },
   allCatalogProducts = [],
 }: ProductsClientPageProps) {
+  // Synchronously seed in-memory catalog cache from SSR props so mobile search is 0ms immediately
+  if (allCatalogProducts.length > 0) {
+    seedCatalogCache(allCatalogProducts, initialCategories);
+  }
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || 'All';
@@ -45,7 +74,7 @@ function CatalogContent({
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [pagination, setPagination] = useState<PaginationMeta>(initialPagination);
 
-  const [loading, setLoading] = useState<boolean>(!hasInitialProducts);
+  const [loading, setLoading] = useState<boolean>(!hasInitialProducts && !isCatalogCacheWarm());
   const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [selectedCondition, setSelectedCondition] = useState<ProductCondition | 'All'>(initialCondition);
@@ -60,6 +89,13 @@ function CatalogContent({
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [orderSuccessData, setOrderSuccessData] = useState<CheckoutResponseData | null>(null);
+
+  // Ensure SSR catalog stays seeded if props update
+  useEffect(() => {
+    if (allCatalogProducts.length > 0) {
+      seedCatalogCache(allCatalogProducts, initialCategories);
+    }
+  }, [allCatalogProducts, initialCategories]);
 
   // Load Categories on mount if not already provided
   useEffect(() => {
@@ -86,9 +122,11 @@ function CatalogContent({
     setCurrentPage(1);
   }, [searchParams]);
 
-  // Fetch products
+  // Fetch products (without skeleton flash when catalog is already warm in RAM)
   const loadProducts = useCallback(async () => {
-    setLoading(true);
+    if (!isCatalogCacheWarm()) {
+      setLoading(true);
+    }
     const parsedMin = minPrice.trim() ? parseFloat(minPrice) : undefined;
     const parsedMax = maxPrice.trim() ? parseFloat(maxPrice) : undefined;
 
@@ -141,10 +179,10 @@ function CatalogContent({
     setCurrentPage(1);
   };
 
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
-    if (query.trim() && selectedCategory !== 'All') {
-      setSelectedCategory('All');
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(prev => (prev === query ? prev : query));
+    if (query.trim()) {
+      setSelectedCategory(prev => (prev !== 'All' ? 'All' : prev));
     }
     setCurrentPage(1);
 
@@ -152,7 +190,7 @@ function CatalogContent({
       const catParam = selectedCategory !== 'All' ? `?category=${encodeURIComponent(selectedCategory)}` : '';
       router.replace(`/products${catParam}`, { scroll: false });
     }
-  };
+  }, [router, searchParams, selectedCategory]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
@@ -175,6 +213,10 @@ function CatalogContent({
     } else if (tab === 'categories') {
       const el = document.getElementById('category-filter-section');
       el?.scrollIntoView({ behavior: 'smooth' });
+    } else if (tab === 'search') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const searchInput = document.getElementById('mobile-search-input') as HTMLInputElement | null;
+      searchInput?.focus();
     }
   };
 
@@ -264,24 +306,7 @@ function CatalogContent({
         />
 
         {/* Complete Store Catalog Index for Search Engine Discovery & Quick Navigation */}
-        {allCatalogProducts.length > 0 && (
-          <section className="mt-12 mb-8 bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6">
-            <h2 className="text-sm font-bold text-slate-900 mb-3">
-              Quick Product Index ({allCatalogProducts.length} Available Items)
-            </h2>
-            <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pr-1 text-[11px]">
-              {allCatalogProducts.map(item => (
-                <Link
-                  key={item._id}
-                  href={`/products/${getProductSlug(item)}`}
-                  className="text-slate-600 hover:text-[#0070D1] bg-slate-50 hover:bg-blue-50 px-2.5 py-1 rounded-lg border border-slate-200/60 transition-colors truncate max-w-[240px]"
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
+        <QuickCatalogIndex items={allCatalogProducts} />
 
       </main>
 

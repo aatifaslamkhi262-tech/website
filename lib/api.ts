@@ -1,19 +1,103 @@
 import { ProductsApiResponse, CategoriesApiResponse, CheckoutPayload, CheckoutApiResponse, ProductQueryParams, Category, Product } from './types';
 import { redisGet, redisSet, redisDel } from './redis';
-import { smartSearchProducts } from './smartSearch';
+import { smartSearchProducts, preindexProducts } from './smartSearch';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_IMS_API_URL || 'https://pgs-ims.vercel.app';
 const API_KEY = process.env.NEXT_PUBLIC_IMS_API_KEY || 'pgs_ecommerce_secret_key_2026';
 
-// Memory Cache for instant sub-50ms responses
+// Memory Cache for instant sub-5ms responses
 let globalCatalogCache: {
   timestamp: number;
   products: Product[];
   categories: Category[];
 } | null = null;
 
-let isWarmingCache = false;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minutes TTL
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minutes fresh TTL
+const STALE_TTL_MS = 24 * 60 * 60 * 1000; // 24 Hours stale-while-revalidate window for instant mobile boot
+
+function persistCatalogToLocalStorage(cacheObj: { timestamp: number; products: Product[]; categories: Category[] }) {
+  if (typeof window === 'undefined') return;
+  const scheduleIdle =
+    (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 120));
+  scheduleIdle(() => {
+    try {
+      localStorage.setItem('pgs_catalog_cache_v3', JSON.stringify(cacheObj));
+    } catch (e) {
+      // ignore storage quota errors
+    }
+  });
+}
+
+/**
+ * Synchronously checks if the in-memory catalog cache is populated (or can be synchronously hydrated from localStorage).
+ */
+export function isCatalogCacheWarm(): boolean {
+  if (globalCatalogCache && globalCatalogCache.products.length > 0) {
+    return true;
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem('pgs_catalog_cache_v3');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (
+          parsed &&
+          Array.isArray(parsed.products) &&
+          parsed.products.length > 0 &&
+          Date.now() - (parsed.timestamp || 0) < STALE_TTL_MS
+        ) {
+          preindexProducts(parsed.products);
+          globalCatalogCache = parsed;
+          if (Date.now() - (parsed.timestamp || 0) >= CACHE_TTL_MS) {
+            // Silently revalidate in the background if stale
+            refreshCatalogFromNetwork().catch(() => {});
+          }
+          return true;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  return false;
+}
+
+/**
+ * Seeds the client/server in-memory catalog cache from SSR props so mobile search is 0ms from the very first keystroke.
+ */
+export function seedCatalogCache(products: Product[], categories?: Category[]): void {
+  if (!Array.isArray(products) || products.length === 0) return;
+
+  // Only overwrite if cache is empty or incoming list has at least as many products
+  if (globalCatalogCache && globalCatalogCache.products.length > products.length) {
+    if (categories && categories.length > 0 && globalCatalogCache.categories.length === 0) {
+      globalCatalogCache.categories = categories;
+    }
+    return;
+  }
+
+  preindexProducts(products);
+  globalCatalogCache = {
+    timestamp: Date.now(),
+    products,
+    categories: categories && categories.length > 0 ? categories : globalCatalogCache?.categories || [],
+  };
+
+  // Only persist full catalogs (>= 50 items) to localStorage so partial homepage lists don't overwrite full catalog
+  if (products.length >= 50) {
+    persistCatalogToLocalStorage(globalCatalogCache);
+  }
+}
+
+/**
+ * Triggers non-blocking background warming of the full product catalog.
+ */
+export function warmCatalogCache(): void {
+  if (globalCatalogCache && globalCatalogCache.products.length >= 50 && Date.now() - globalCatalogCache.timestamp < CACHE_TTL_MS) {
+    return;
+  }
+  ensureCatalogCache().catch(() => {});
+}
 
 export function getProductEffectivePrice(product: Product): number {
   if (!product) return 0;
@@ -77,135 +161,130 @@ export async function fetchCategories(): Promise<Category[]> {
 
 let warmingPromise: Promise<Product[]> | null = null;
 
-async function ensureCatalogCache(): Promise<Product[]> {
-  const now = Date.now();
-  if (globalCatalogCache && globalCatalogCache.products.length > 0 && (now - globalCatalogCache.timestamp < CACHE_TTL_MS)) {
-    return globalCatalogCache.products;
+async function fetchFromImsCatalog(): Promise<Product[]> {
+  const fetchPage = (pageNum: number) =>
+    fetch(`${API_BASE_URL}/api/public/products?page=${pageNum}&limit=1000&inStockOnly=true`, {
+      headers: {
+        'Accept': 'application/json',
+      },
+      next: { revalidate: 120 }
+    }).then(res => (res.ok ? res.json() : null)).catch(() => null);
+
+  const firstPageRes = await fetchPage(1);
+  const allProducts: Product[] = [];
+
+  if (firstPageRes && firstPageRes.success && Array.isArray(firstPageRes.data)) {
+    allProducts.push(...firstPageRes.data);
+
+    // Safety fallback if in-stock catalog ever exceeds 1,000 items in the future
+    const totalPages = Math.min(5, Math.max(1, firstPageRes.pagination?.totalPages || 1));
+    if (totalPages > 1) {
+      const remainingPages: number[] = [];
+      for (let p = 2; p <= totalPages; p++) {
+        remainingPages.push(p);
+      }
+      const results = await Promise.all(remainingPages.map(p => fetchPage(p)));
+      results.forEach(r => {
+        if (r && r.success && Array.isArray(r.data)) {
+          allProducts.push(...r.data);
+        }
+      });
+    }
   }
 
+  if (allProducts.length === 0) {
+    throw new Error('Empty IMS catalog');
+  }
+
+  const uniqueMap = new Map<string, Product>();
+  allProducts.forEach(p => uniqueMap.set(p._id, p));
+  const unique = Array.from(uniqueMap.values());
+
+  // Exclude REPAIRING PARTS, 'other' category, and Out-of-Stock products (inStock === false or warehouseStock <= 0)
+  const filteredProducts = unique.filter(p => {
+    if (!p.inStock || (p.warehouseStock !== undefined && p.warehouseStock <= 0)) return false;
+
+    if (typeof p.category === 'object' && p.category !== null) {
+      const catName = (p.category.name || '').toUpperCase().trim();
+      if (catName.includes('REPAIR') || catName === 'OTHER' || p.category._id === '6ab53bed11becccecde93543' || p.category._id === '6ac799f43d321e0959cefdce') return false;
+    } else if (typeof p.category === 'string') {
+      const catStr = p.category.toUpperCase().trim();
+      if (catStr === '6ab53bed11becccecde93543' || catStr === '6ac799f43d321e0959cefdce' || catStr.includes('REPAIR') || catStr === 'OTHER') return false;
+    }
+    return true;
+  });
+
+  // Global Sort: In-Stock items FIRST (highest stock first), Out-of-Stock items AT THE VERY END
+  filteredProducts.sort((a, b) => {
+    if (a.inStock !== b.inStock) {
+      return a.inStock ? -1 : 1;
+    }
+    return (b.warehouseStock || 0) - (a.warehouseStock || 0);
+  });
+
+  // Populate Upstash Redis RAM Cache (900s TTL; invalidated on checkout)
+  redisSet('pgs:catalog:v1', filteredProducts, 900).catch(() => {});
+
+  return filteredProducts;
+}
+
+async function refreshCatalogFromNetwork(): Promise<Product[]> {
   if (warmingPromise) {
     return warmingPromise;
   }
 
   warmingPromise = (async () => {
     try {
-      // 1. Check browser localStorage cache first if available (0ms synchronous, zero network calls)
-      if (typeof window !== 'undefined') {
-        try {
-          const cached = localStorage.getItem('pgs_catalog_cache_v3');
-          if (cached) {
-            const parsed = JSON.parse(cached);
-            if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0 && (now - parsed.timestamp < CACHE_TTL_MS)) {
-              globalCatalogCache = parsed;
-              return parsed.products;
-            }
-          }
-        } catch (e) {
-          // ignore
+      // Hedged parallel race: Try Upstash Redis first; if Redis misses (null) or takes > 150ms,
+      // launch the IMS CDN catalog request in parallel so a Redis miss never adds 800ms of sequential lag.
+      let imsStarted = false;
+      let imsPromiseRef: Promise<Product[]> | null = null;
+      const startIms = () => {
+        if (!imsStarted) {
+          imsStarted = true;
+          imsPromiseRef = fetchFromImsCatalog();
         }
-      }
+        return imsPromiseRef!;
+      };
 
-      // 2. Check Upstash Redis RAM Cache for Instant sub-10ms response
-      const redisCatalog = await redisGet<Product[]>('pgs:catalog:v1');
-      if (redisCatalog && Array.isArray(redisCatalog) && redisCatalog.length > 0) {
+      const hedgeTimer = setTimeout(startIms, 150);
+
+      const redisTry = redisGet<Product[]>('pgs:catalog:v1').then(res => {
+        if (res && Array.isArray(res) && res.length > 0) {
+          clearTimeout(hedgeTimer);
+          return res;
+        }
+        throw new Error('Redis cache miss');
+      });
+
+      const imsTry = new Promise<Product[]>((resolve, reject) => {
+        redisTry.catch(() => {
+          clearTimeout(hedgeTimer);
+          startIms().then(resolve).catch(reject);
+        });
+        setTimeout(() => {
+          if (imsPromiseRef) {
+            imsPromiseRef.then(resolve).catch(reject);
+          }
+        }, 155);
+      });
+
+      const freshProducts = await Promise.any([redisTry, imsTry]);
+      clearTimeout(hedgeTimer);
+
+      if (freshProducts && freshProducts.length > 0) {
+        preindexProducts(freshProducts);
         globalCatalogCache = {
           timestamp: Date.now(),
-          products: redisCatalog,
+          products: freshProducts,
           categories: globalCatalogCache?.categories || [],
         };
-        if (typeof window !== 'undefined') {
-          const scheduleIdle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 150));
-          scheduleIdle(() => {
-            try {
-              localStorage.setItem('pgs_catalog_cache_v3', JSON.stringify(globalCatalogCache));
-            } catch (e) {}
-          });
-        }
-        return redisCatalog;
-      }
-
-      // 3. Single-Request Catalog Fetch (limit=1000 & inStockOnly=true, CDN-cacheable, no custom auth headers)
-      const fetchPage = (pageNum: number) =>
-        fetch(`${API_BASE_URL}/api/public/products?page=${pageNum}&limit=1000&inStockOnly=true`, {
-          headers: {
-            'Accept': 'application/json',
-          },
-          next: { revalidate: 120 }
-        }).then(res => (res.ok ? res.json() : null)).catch(() => null);
-
-      const firstPageRes = await fetchPage(1);
-      const allProducts: Product[] = [];
-
-      if (firstPageRes && firstPageRes.success && Array.isArray(firstPageRes.data)) {
-        allProducts.push(...firstPageRes.data);
-
-        // Safety fallback if in-stock catalog ever exceeds 1,000 items in the future
-        const totalPages = Math.min(5, Math.max(1, firstPageRes.pagination?.totalPages || 1));
-        if (totalPages > 1) {
-          const remainingPages: number[] = [];
-          for (let p = 2; p <= totalPages; p++) {
-            remainingPages.push(p);
-          }
-          const results = await Promise.all(remainingPages.map(p => fetchPage(p)));
-          results.forEach(r => {
-            if (r && r.success && Array.isArray(r.data)) {
-              allProducts.push(...r.data);
-            }
-          });
-        }
-      }
-
-      if (allProducts.length > 0) {
-        const uniqueMap = new Map<string, Product>();
-        allProducts.forEach(p => uniqueMap.set(p._id, p));
-        const unique = Array.from(uniqueMap.values());
-
-        // Exclude REPAIRING PARTS, 'other' category, and Out-of-Stock products (inStock === false or warehouseStock <= 0)
-        const filteredProducts = unique.filter(p => {
-          if (!p.inStock || (p.warehouseStock !== undefined && p.warehouseStock <= 0)) return false;
-
-          if (typeof p.category === 'object' && p.category !== null) {
-            const catName = (p.category.name || '').toUpperCase().trim();
-            if (catName.includes('REPAIR') || catName === 'OTHER' || p.category._id === '6ab53bed11becccecde93543' || p.category._id === '6ac799f43d321e0959cefdce') return false;
-          } else if (typeof p.category === 'string') {
-            const catStr = p.category.toUpperCase().trim();
-            if (catStr === '6ab53bed11becccecde93543' || catStr === '6ac799f43d321e0959cefdce' || catStr.includes('REPAIR') || catStr === 'OTHER') return false;
-          }
-          return true;
-        });
-
-        // Global Sort: In-Stock items FIRST (highest stock first), Out-of-Stock items AT THE VERY END
-        filteredProducts.sort((a, b) => {
-          if (a.inStock !== b.inStock) {
-            return a.inStock ? -1 : 1;
-          }
-          return (b.warehouseStock || 0) - (a.warehouseStock || 0);
-        });
-
-        globalCatalogCache = {
-          timestamp: Date.now(),
-          products: filteredProducts,
-          categories: globalCatalogCache?.categories || []
-        };
-
-        // Populate Upstash Redis RAM Cache (300s TTL for real-time freshness)
-        redisSet('pgs:catalog:v1', filteredProducts, 300).catch(() => {});
-
-        if (typeof window !== 'undefined') {
-          const scheduleIdle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 150));
-          scheduleIdle(() => {
-            try {
-              localStorage.setItem('pgs_catalog_cache_v3', JSON.stringify(globalCatalogCache));
-            } catch (e) {}
-          });
-        }
-
-        return filteredProducts;
+        persistCatalogToLocalStorage(globalCatalogCache);
+        return freshProducts;
       }
 
       return globalCatalogCache?.products || [];
     } catch (e) {
-      console.error('Error warming catalog cache:', e);
       return globalCatalogCache?.products || [];
     } finally {
       warmingPromise = null;
@@ -213,6 +292,46 @@ async function ensureCatalogCache(): Promise<Product[]> {
   })();
 
   return warmingPromise;
+}
+
+async function ensureCatalogCache(): Promise<Product[]> {
+  const now = Date.now();
+
+  // 1. In-memory cache hit (Fresh -> 0ms return; Stale -> 0ms return + silent background refresh)
+  if (globalCatalogCache && globalCatalogCache.products.length > 0) {
+    if (now - globalCatalogCache.timestamp >= CACHE_TTL_MS) {
+      refreshCatalogFromNetwork().catch(() => {});
+    }
+    return globalCatalogCache.products;
+  }
+
+  // 2. Browser localStorage hit (Fresh or Stale-While-Revalidate -> 0ms synchronous return!)
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem('pgs_catalog_cache_v3');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (
+          parsed &&
+          Array.isArray(parsed.products) &&
+          parsed.products.length > 0 &&
+          now - (parsed.timestamp || 0) < STALE_TTL_MS
+        ) {
+          preindexProducts(parsed.products);
+          globalCatalogCache = parsed;
+          if (now - (parsed.timestamp || 0) >= CACHE_TTL_MS) {
+            refreshCatalogFromNetwork().catch(() => {});
+          }
+          return parsed.products;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // 3. Cold cache: fetch via hedged parallel network loader
+  return refreshCatalogFromNetwork();
 }
 
 export async function fetchProducts(params: ProductQueryParams = {}): Promise<ProductsApiResponse> {

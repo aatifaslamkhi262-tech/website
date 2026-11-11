@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense, startTransition } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Search, ShoppingBag, Gamepad2, Phone, X, Check, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { fetchProducts, getProductEffectivePrice, getProductSlug } from '@/lib/api';
+import { fetchProducts, getProductEffectivePrice, getProductSlug, warmCatalogCache, isCatalogCacheWarm } from '@/lib/api';
 import { Product } from '@/lib/types';
 import { tokenize } from '@/lib/smartSearch';
 
@@ -94,6 +94,29 @@ function HeaderNavFallback({ pathname }: { pathname: string }) {
 
 const POPULAR_SEARCHES = ['PS5 Slim', 'DualSense', 'Spider-Man 2', 'Xbox Series X', 'GTA V', 'Consoles'];
 
+const pkrFormatter = new Intl.NumberFormat('en-PK', {
+  style: 'currency',
+  currency: 'PKR',
+  maximumFractionDigits: 0,
+});
+
+function formatPKR(val: number): string {
+  if (val <= 0) return 'Call for Price';
+  return pkrFormatter.format(val).replace('PKR', 'Rs.');
+}
+
+function getOptimizedThumbUrl(rawUrl: string): string {
+  if (!rawUrl) return '';
+  if (
+    rawUrl.includes('res.cloudinary.com') &&
+    rawUrl.includes('/upload/') &&
+    !rawUrl.includes('/upload/f_auto')
+  ) {
+    return rawUrl.replace('/upload/', '/upload/f_auto,q_auto:good,w_96/');
+  }
+  return rawUrl;
+}
+
 function highlightMatchText(text: string, query: string) {
   if (!query.trim()) return text;
   const tokens = tokenize(query);
@@ -108,10 +131,11 @@ function highlightMatchText(text: string, query: string) {
   const pattern = new RegExp(`(${escaped})`, 'gi');
   const parts = text.split(pattern);
 
+  // When splitting by a single capturing group, odd indices are guaranteed to be the matched substrings
   return (
     <>
       {parts.map((part, i) =>
-        pattern.test(part) ? (
+        i % 2 === 1 ? (
           <span key={i} className="text-[#0070D1] font-bold underline decoration-blue-300 underline-offset-2">
             {part}
           </span>
@@ -134,7 +158,22 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [activeInput, setActiveInput] = useState<'desktop' | 'mobile' | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+
+  // Pre-warm catalog cache on idle after Header mounts so first mobile search is 0ms instant
+  useEffect(() => {
+    const scheduleIdle =
+      (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 250));
+    const handle = scheduleIdle(() => {
+      warmCatalogCache();
+    });
+    return () => {
+      if ((window as any).cancelIdleCallback && typeof handle === 'number') {
+        (window as any).cancelIdleCallback(handle);
+      }
+    };
+  }, []);
 
   // Close dropdown on route change
   useEffect(() => {
@@ -151,40 +190,66 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
   useEffect(() => {
     const trimmed = localSearch.trim();
 
-    // 1. When input is completely cleared/empty: reset suggestions and notify parent immediately
+    // 1. When input is completely cleared/empty: reset suggestions and notify parent if changed
     if (!trimmed) {
       setSuggestions([]);
       setSearchLoading(false);
-      onSearchChange?.('');
+      if (searchQuery) {
+        startTransition(() => {
+          onSearchChange?.('');
+        });
+      }
       return;
     }
 
-    // 2. If 1 character: close suggestions dropdown, but keep parent search query updated
+    // 2. If 1 character: close suggestions dropdown and debounce parent update so mobile keyboard animation never stutters
     if (trimmed.length < 2) {
       setSuggestions([]);
       setSearchLoading(false);
-      onSearchChange?.(trimmed);
-      return;
+      const shortHandler = setTimeout(() => {
+        startTransition(() => {
+          onSearchChange?.(trimmed);
+        });
+      }, 180);
+      return () => clearTimeout(shortHandler);
     }
 
     // 3. Debounce suggestions fetching and catalog search
+    let cancelled = false;
+    const isWarm = isCatalogCacheWarm();
+    const debounceMs = isWarm ? 120 : 180;
+
     const handler = setTimeout(async () => {
-      setSearchLoading(true);
+      if (cancelled) return;
+      if (!isWarm) {
+        setSearchLoading(true);
+      }
       if (isFocused) {
         setShowDropdown(true);
       }
-      onSearchChange?.(trimmed);
+
+      startTransition(() => {
+        onSearchChange?.(trimmed);
+      });
+
       const res = await fetchProducts({ search: trimmed, limit: 6 });
+      if (cancelled) return;
+
       if (res.success && res.data) {
-        const inStockSuggestions = res.data.filter(item => item.inStock && (item.warehouseStock === undefined || item.warehouseStock > 0));
+        const inStockSuggestions = res.data.filter(
+          item => item.inStock && (item.warehouseStock === undefined || item.warehouseStock > 0)
+        );
         setSuggestions(inStockSuggestions.slice(0, 6));
       } else {
         setSuggestions([]);
       }
       setSearchLoading(false);
-    }, 150);
+    }, debounceMs);
 
-    return () => clearTimeout(handler);
+    return () => {
+      cancelled = true;
+      clearTimeout(handler);
+    };
   }, [localSearch, isFocused]);
 
   // Close dropdown when clicking outside
@@ -235,15 +300,6 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
     }
   };
 
-  const formatPKR = (val: number) => {
-    if (val <= 0) return 'Call for Price';
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
-      maximumFractionDigits: 0,
-    }).format(val).replace('PKR', 'Rs.');
-  };
-
   const renderSuggestionsList = () => {
     const trimmed = localSearch.trim();
 
@@ -288,9 +344,10 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
             )}
           </div>
 
-          <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+          <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto overscroll-contain">
             {suggestions.map(item => {
-              const thumb = item.images && item.images.length > 0 ? item.images[0].url : '';
+              const rawThumb = item.images && item.images.length > 0 ? item.images[0].url : '';
+              const thumb = getOptimizedThumbUrl(rawThumb);
               const finalP = getProductEffectivePrice(item);
 
               return (
@@ -306,7 +363,15 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                   {/* Thumb Image or Frame */}
                   <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 flex items-center justify-center">
                     {thumb ? (
-                      <img src={thumb} alt={item.name} className="w-full h-full object-contain" />
+                      <img
+                        src={thumb}
+                        alt={item.name}
+                        width={40}
+                        height={40}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-contain"
+                      />
                     ) : (
                       <Gamepad2 className="w-5 h-5 text-slate-400 group-hover:text-[#0070D1] transition-colors" />
                     )}
@@ -419,11 +484,13 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
               <form onSubmit={handleSearchSubmit} className="relative flex items-center">
                 <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
-                  type="text"
+                  type="search"
                   aria-label="Search products, SKUs"
                   placeholder="Search products, SKUs..."
                   value={localSearch}
                   onFocus={() => {
+                    warmCatalogCache();
+                    setActiveInput('desktop');
                     setIsFocused(true);
                     setShowDropdown(true);
                   }}
@@ -454,8 +521,8 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
                 )}
               </form>
 
-              {/* Instant Auto-Suggest Dropdown Overlay */}
-              {showDropdown && renderSuggestionsList()}
+              {/* Instant Auto-Suggest Dropdown Overlay (Only mounted when desktop input is active) */}
+              {showDropdown && activeInput === 'desktop' && renderSuggestionsList()}
 
             </div>
 
@@ -485,11 +552,19 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
           <form onSubmit={handleSearchSubmit} className="relative flex items-center">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
-              type="text"
+              id="mobile-search-input"
+              type="search"
+              enterKeyHint="search"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
               aria-label="Search products"
               placeholder="Search products..."
               value={localSearch}
+              onTouchStart={() => warmCatalogCache()}
               onFocus={() => {
+                warmCatalogCache();
+                setActiveInput('mobile');
                 setIsFocused(true);
                 setShowDropdown(true);
               }}
@@ -520,8 +595,8 @@ export const Header: React.FC<HeaderProps> = ({ searchQuery = '', onSearchChange
             )}
           </form>
 
-          {/* Instant Auto-Suggest Dropdown Overlay (Mobile) */}
-          {showDropdown && renderSuggestionsList()}
+          {/* Instant Auto-Suggest Dropdown Overlay (Only mounted when mobile input is active) */}
+          {showDropdown && activeInput !== 'desktop' && renderSuggestionsList()}
         </div>
 
       </div>

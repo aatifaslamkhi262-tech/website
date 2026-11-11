@@ -47,33 +47,94 @@ export function normalizeGamingText(text: string): string {
     .replace(/\bgta\s*vi\b/gi, 'gta6');
 }
 
-// Tokenize text into clean search tokens
-export function tokenize(str: string): string[] {
+// Tokenize text into clean search tokens (avoids redundant regex pass if already normalized)
+export function tokenize(str: string, alreadyNormalized = false): string[] {
   if (!str) return [];
-  const normalized = normalizeGamingText(str);
+  const normalized = alreadyNormalized ? str : normalizeGamingText(str);
   return normalized
     .replace(/[^a-z0-9]/g, ' ')
     .split(/\s+/)
     .filter(t => t.length > 0);
 }
 
-// Levenshtein distance for typo tolerance
+// Fast tokenization for simple fields (SKU, Brand, Category) that don't need 14 gaming regexes unless they contain 'ps' or 'play' or 'gta'
+function tokenizeSimpleOrGaming(lowerStr: string): string[] {
+  if (!lowerStr) return [];
+  const needsGamingNorm =
+    lowerStr.includes('ps') || lowerStr.includes('play') || lowerStr.includes('gta');
+  const norm = needsGamingNorm ? normalizeGamingText(lowerStr) : lowerStr;
+  return norm
+    .replace(/[^a-z0-9]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t.length > 0);
+}
+
+// Pre-compile GAMING_SYNONYMS once at module load time (zero runtime regex overhead during search)
+const PRETOKENIZED_SYNONYMS: Record<string, string[][]> = {};
+const REVERSE_SYNONYM_MAP: Record<string, string[]> = {};
+
+for (const [key, synList] of Object.entries(GAMING_SYNONYMS)) {
+  const tokenizedGroups = synList.map(s => tokenize(s));
+  PRETOKENIZED_SYNONYMS[key] = tokenizedGroups;
+
+  for (let i = 0; i < synList.length; i++) {
+    const rawSyn = synList[i];
+    const synTokens = tokenizedGroups[i];
+    if (!REVERSE_SYNONYM_MAP[rawSyn]) REVERSE_SYNONYM_MAP[rawSyn] = [];
+    if (!REVERSE_SYNONYM_MAP[rawSyn].includes(key)) {
+      REVERSE_SYNONYM_MAP[rawSyn].push(key);
+    }
+    for (const st of synTokens) {
+      if (!REVERSE_SYNONYM_MAP[st]) REVERSE_SYNONYM_MAP[st] = [];
+      if (!REVERSE_SYNONYM_MAP[st].includes(key)) {
+        REVERSE_SYNONYM_MAP[st].push(key);
+      }
+    }
+  }
+}
+
+// Reusable static buffer for Levenshtein distance to avoid GC thrashing on mobile
+const levRowBuffer = new Int32Array(128);
+
 export function levenshtein(a: string, b: string): number {
   if (a === b) return 0;
-  if (!a.length) return b.length;
-  if (!b.length) return a.length;
+  const aLen = a.length;
+  const bLen = b.length;
+  if (!aLen) return bLen;
+  if (!bLen) return aLen;
 
-  const row = Array.from({ length: b.length + 1 }, (_, i) => i);
-  for (let i = 1; i <= a.length; i++) {
+  if (bLen >= levRowBuffer.length) {
+    const row = Array.from({ length: bLen + 1 }, (_, i) => i);
+    for (let i = 1; i <= aLen; i++) {
+      let prev = i;
+      for (let j = 1; j <= bLen; j++) {
+        const val = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? row[j - 1] : Math.min(row[j - 1], prev, row[j]) + 1;
+        row[j - 1] = prev;
+        prev = val;
+      }
+      row[bLen] = prev;
+    }
+    return row[bLen];
+  }
+
+  for (let j = 0; j <= bLen; j++) {
+    levRowBuffer[j] = j;
+  }
+
+  for (let i = 1; i <= aLen; i++) {
     let prev = i;
-    for (let j = 1; j <= b.length; j++) {
-      const val = a[i - 1] === b[j - 1] ? row[j - 1] : Math.min(row[j - 1], prev, row[j]) + 1;
-      row[j - 1] = prev;
+    const aCode = a.charCodeAt(i - 1);
+    for (let j = 1; j <= bLen; j++) {
+      const val =
+        aCode === b.charCodeAt(j - 1)
+          ? levRowBuffer[j - 1]
+          : Math.min(levRowBuffer[j - 1], prev, levRowBuffer[j]) + 1;
+      levRowBuffer[j - 1] = prev;
       prev = val;
     }
-    row[b.length] = prev;
+    levRowBuffer[bLen] = prev;
   }
-  return row[b.length];
+  return levRowBuffer[bLen];
 }
 
 // Check if token matches target word or is fuzzy match
@@ -90,18 +151,21 @@ function tokenMatchesWord(queryToken: string, targetWord: string): boolean {
 
   // Pure numbers (like '5' or '4'): MUST match exactly, never prefix!
   // e.g. '5' must NOT match '500' or '500gb'!
-  if (/^\d+$/.test(queryToken)) {
+  const firstCode = queryToken.charCodeAt(0);
+  if (firstCode >= 48 && firstCode <= 57 && /^\d+$/.test(queryToken)) {
     return targetWord === queryToken;
   }
 
   // Prefix match for words of length >= 3
-  if (queryToken.length >= 3 && targetWord.startsWith(queryToken)) return true;
-  if (queryToken.length >= 4 && targetWord.includes(queryToken)) return true;
+  const qLen = queryToken.length;
+  const tLen = targetWord.length;
+  if (qLen >= 3 && tLen >= qLen && targetWord.startsWith(queryToken)) return true;
+  if (qLen >= 4 && tLen >= qLen && targetWord.includes(queryToken)) return true;
 
   // Typo tolerance:
-  if (queryToken.length >= 4 && targetWord.length >= 4) {
-    const maxDist = queryToken.length > 6 ? 2 : 1;
-    if (Math.abs(queryToken.length - targetWord.length) <= maxDist) {
+  if (qLen >= 4 && tLen >= 4) {
+    const maxDist = qLen > 6 ? 2 : 1;
+    if (Math.abs(qLen - tLen) <= maxDist) {
       if (levenshtein(queryToken, targetWord) <= maxDist) {
         return true;
       }
@@ -110,36 +174,136 @@ function tokenMatchesWord(queryToken: string, targetWord: string): boolean {
   return false;
 }
 
-// Check if queryToken matches any of the target words or known synonyms
-function matchTokenInList(queryToken: string, targetWords: string[]): { matched: boolean; isExact: boolean } {
+interface CompiledQueryToken {
+  token: string;
+  synonymGroups: string[][];
+  reverseKeys: string[];
+}
+
+function compileQueryToken(queryToken: string): CompiledQueryToken {
+  return {
+    token: queryToken,
+    synonymGroups: PRETOKENIZED_SYNONYMS[queryToken] || [],
+    reverseKeys: REVERSE_SYNONYM_MAP[queryToken] || [],
+  };
+}
+
+// Check if compiled queryToken matches any of the target words or known synonyms
+function matchCompiledTokenInList(
+  compiled: CompiledQueryToken,
+  targetWords: string[]
+): { matched: boolean; isExact: boolean } {
+  const len = targetWords.length;
+  if (len === 0) return { matched: false, isExact: false };
+
+  const queryToken = compiled.token;
+
   // 1. Direct match or typo match in product target words
-  for (const word of targetWords) {
+  for (let i = 0; i < len; i++) {
+    const word = targetWords[i];
     if (word === queryToken) return { matched: true, isExact: true };
     if (tokenMatchesWord(queryToken, word)) return { matched: true, isExact: false };
   }
 
-  // 2. Gaming synonyms
-  const synonyms = GAMING_SYNONYMS[queryToken];
-  if (synonyms) {
-    for (const syn of synonyms) {
-      const synTokens = tokenize(syn);
-      const allSynFound = synTokens.every(st => targetWords.some(tw => tokenMatchesWord(st, tw)));
-      if (allSynFound) {
-        return { matched: true, isExact: false };
+  // 2. Gaming synonyms (pre-tokenized)
+  const synGroups = compiled.synonymGroups;
+  for (let i = 0; i < synGroups.length; i++) {
+    const synTokens = synGroups[i];
+    let allSynFound = true;
+    for (let j = 0; j < synTokens.length; j++) {
+      const st = synTokens[j];
+      let found = false;
+      for (let k = 0; k < len; k++) {
+        if (tokenMatchesWord(st, targetWords[k])) {
+          found = true;
+          break;
+        }
       }
+      if (!found) {
+        allSynFound = false;
+        break;
+      }
+    }
+    if (allSynFound) {
+      return { matched: true, isExact: false };
     }
   }
 
-  // 3. Reverse synonyms
-  for (const [key, synList] of Object.entries(GAMING_SYNONYMS)) {
-    if (synList.some(s => s === queryToken || tokenize(s).includes(queryToken))) {
-      if (targetWords.includes(key) || targetWords.some(tw => tokenMatchesWord(key, tw))) {
+  // 3. Reverse synonyms (pre-indexed O(1) lookup)
+  const revKeys = compiled.reverseKeys;
+  for (let i = 0; i < revKeys.length; i++) {
+    const key = revKeys[i];
+    for (let k = 0; k < len; k++) {
+      const tw = targetWords[k];
+      if (tw === key || tokenMatchesWord(key, tw)) {
         return { matched: true, isExact: false };
       }
     }
   }
 
   return { matched: false, isExact: false };
+}
+
+interface IndexedProduct {
+  nameNorm: string;
+  nameTokens: string[];
+  skuLower: string;
+  skuTokens: string[];
+  brandLower: string;
+  brandTokens: string[];
+  catNameLower: string;
+  catTokens: string[];
+  barcodeLower: string;
+  hasPs5: boolean;
+  hasPs4: boolean;
+  hasPs3: boolean;
+}
+
+const productIndexCache = new WeakMap<Product, IndexedProduct>();
+
+function getIndexedProduct(p: Product): IndexedProduct {
+  let indexed = productIndexCache.get(p);
+  if (indexed) return indexed;
+
+  const nameNorm = normalizeGamingText(p.name || '');
+  const nameTokens = tokenize(nameNorm, true);
+  const skuLower = (p.sku || '').toLowerCase();
+  const brandLower = (p.brand || '').toLowerCase();
+  const catNameLower =
+    typeof p.category === 'object' && p.category?.name
+      ? p.category.name.toLowerCase()
+      : typeof p.category === 'string'
+      ? p.category.toLowerCase()
+      : '';
+  const barcodeLower = (p.barcode || '').toLowerCase();
+
+  indexed = {
+    nameNorm,
+    nameTokens,
+    skuLower,
+    skuTokens: tokenizeSimpleOrGaming(skuLower),
+    brandLower,
+    brandTokens: tokenizeSimpleOrGaming(brandLower),
+    catNameLower,
+    catTokens: tokenizeSimpleOrGaming(catNameLower),
+    barcodeLower,
+    hasPs5: nameTokens.includes('ps5'),
+    hasPs4: nameTokens.includes('ps4'),
+    hasPs3: nameTokens.includes('ps3'),
+  };
+
+  productIndexCache.set(p, indexed);
+  return indexed;
+}
+
+/**
+ * Pre-indexes an array of products so subsequent searches run in < 1ms with zero regex overhead.
+ */
+export function preindexProducts(products: Product[]): void {
+  if (!Array.isArray(products)) return;
+  for (let i = 0; i < products.length; i++) {
+    getIndexedProduct(products[i]);
+  }
 }
 
 export interface SmartSearchResult {
@@ -152,66 +316,65 @@ export function smartSearchProducts(products: Product[], query: string): Product
   if (!cleanRawQuery) return products;
 
   const normalizedQuery = normalizeGamingText(cleanRawQuery);
-  const queryTokens = tokenize(normalizedQuery);
+  const queryTokens = tokenize(normalizedQuery, true);
   if (queryTokens.length === 0) return products;
+
+  // Pre-compile query tokens once outside the product loop
+  const compiledQueryTokens = queryTokens.map(compileQueryToken);
+  const qLen = compiledQueryTokens.length;
 
   // Platform flags for strict generation isolation
   const isPs5Query = queryTokens.includes('ps5');
   const isPs4Query = queryTokens.includes('ps4');
   const isPs3Query = queryTokens.includes('ps3');
 
+  const minRequiredMatches = qLen <= 3 ? qLen : Math.ceil(qLen * 0.75);
   const scored: SmartSearchResult[] = [];
 
-  for (const p of products) {
-    const nameNorm = normalizeGamingText(p.name || '');
-    const nameTokens = tokenize(nameNorm);
+  for (let idx = 0; idx < products.length; idx++) {
+    const p = products[idx];
+    const indexed = getIndexedProduct(p);
 
     // STRICT GENERATION ISOLATION:
     // If user searched for PS5: NEVER match products that have PS4 in name (unless they also say PS5)
-    if (isPs5Query && nameTokens.includes('ps4') && !nameTokens.includes('ps5')) {
+    if (isPs5Query && indexed.hasPs4 && !indexed.hasPs5) {
       continue;
     }
     // If user searched for PS4: NEVER match PS5 products
-    if (isPs4Query && nameTokens.includes('ps5') && !nameTokens.includes('ps4')) {
+    if (isPs4Query && indexed.hasPs5 && !indexed.hasPs4) {
       continue;
     }
     // If user searched for PS3: NEVER match PS4/PS5 products
-    if (isPs3Query && (nameTokens.includes('ps4') || nameTokens.includes('ps5')) && !nameTokens.includes('ps3')) {
+    if (isPs3Query && (indexed.hasPs4 || indexed.hasPs5) && !indexed.hasPs3) {
       continue;
     }
 
-    const skuLower = (p.sku || '').toLowerCase();
-    const brandLower = (p.brand || '').toLowerCase();
-    const catNameLower = typeof p.category === 'object' && p.category?.name ? p.category.name.toLowerCase() : (typeof p.category === 'string' ? p.category.toLowerCase() : '');
-    const barcodeLower = (p.barcode || '').toLowerCase();
-
-    const skuTokens = tokenize(skuLower);
-    const brandTokens = tokenize(brandLower);
-    const catTokens = tokenize(catNameLower);
-
     let totalScore = 0;
     let matchedTokenCount = 0;
+    let matchedInNameCount = 0;
 
     // Highest priority: exact phrase in normalized product name
-    if (nameNorm.includes(normalizedQuery)) {
+    if (indexed.nameNorm.includes(normalizedQuery)) {
       totalScore += 350;
     }
     // Exact SKU match
-    if (skuLower === normalizedQuery || barcodeLower === normalizedQuery) {
+    if (indexed.skuLower === normalizedQuery || (indexed.barcodeLower && indexed.barcodeLower === normalizedQuery)) {
       totalScore += 300;
     }
 
-    // Check each query token
-    for (const qToken of queryTokens) {
-      const nameMatch = matchTokenInList(qToken, nameTokens);
-      const skuMatch = matchTokenInList(qToken, skuTokens);
-      const brandMatch = matchTokenInList(qToken, brandTokens);
-      const catMatch = matchTokenInList(qToken, catTokens);
+    // Check each compiled query token
+    for (let i = 0; i < qLen; i++) {
+      const cToken = compiledQueryTokens[i];
+      const nameMatch = matchCompiledTokenInList(cToken, indexed.nameTokens);
+      const skuMatch = matchCompiledTokenInList(cToken, indexed.skuTokens);
+      const brandMatch = matchCompiledTokenInList(cToken, indexed.brandTokens);
+      const catMatch = matchCompiledTokenInList(cToken, indexed.catTokens);
 
       if (nameMatch.matched || skuMatch.matched || brandMatch.matched || catMatch.matched) {
         matchedTokenCount++;
 
         if (nameMatch.matched) {
+          matchedInNameCount++;
           totalScore += nameMatch.isExact ? 80 : 45;
         }
         if (skuMatch.matched) {
@@ -226,21 +389,17 @@ export function smartSearchProducts(products: Product[], query: string): Product
       }
     }
 
-    // Require either all tokens or 75% of tokens
-    const minRequiredMatches = queryTokens.length <= 3 ? queryTokens.length : Math.ceil(queryTokens.length * 0.75);
-
     if (matchedTokenCount >= minRequiredMatches) {
-      // Big Bonus if all query tokens appear in the product name
-      const allInName = queryTokens.every(qt => matchTokenInList(qt, nameTokens).matched);
-      if (allInName) {
+      // Big Bonus if all query tokens appear in the product name (already tracked above, 0 extra work!)
+      if (matchedInNameCount === qLen) {
         totalScore += 120;
       }
 
       // Bonus if platform matches target (e.g. ps5 in ps5)
-      if (isPs5Query && nameTokens.includes('ps5')) {
+      if (isPs5Query && indexed.hasPs5) {
         totalScore += 100;
       }
-      if (isPs4Query && nameTokens.includes('ps4')) {
+      if (isPs4Query && indexed.hasPs4) {
         totalScore += 100;
       }
 
