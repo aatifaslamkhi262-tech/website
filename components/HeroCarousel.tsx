@@ -31,6 +31,100 @@ function calculateTimeLeft(): TimeLeft {
   };
 }
 
+function useGtaCountdown() {
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({
+    days: '7',
+    hours: '4',
+    minutes: '50',
+    seconds: '0',
+  });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setTimeLeft(calculateTimeLeft());
+
+    const interval = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return { timeLeft, mounted };
+}
+
+// Isolated Mobile Countdown Sub-Component (prevents parent HeroCarousel & Image re-renders every second)
+const MobileCountdownBoxes: React.FC = () => {
+  const { timeLeft, mounted } = useGtaCountdown();
+
+  return (
+    <div className="sm:hidden flex items-center gap-1.5 mb-2.5 z-20">
+      {[
+        { val: mounted ? timeLeft.days : '7', label: 'DAY' },
+        { val: mounted ? timeLeft.hours : '4', label: 'HOUR' },
+        { val: mounted ? timeLeft.minutes : '50', label: 'MIN' },
+      ].map((box) => (
+        <div
+          key={box.label}
+          className="w-[40px] rounded-lg bg-slate-900/95 border border-white/15 shadow-md overflow-hidden flex flex-col items-center"
+        >
+          <div className="w-full h-1 bg-rose-500/80" />
+          <div className="h-4.5 flex items-center justify-center overflow-hidden pt-0.5">
+            <span
+              key={box.val}
+              className="animate-slide-up-tick text-[11px] font-extrabold text-white tabular-nums leading-none block"
+            >
+              {box.val}
+            </span>
+          </div>
+          <span className="text-[7px] font-bold text-slate-400 uppercase tracking-wider pb-0.5 leading-none">
+            {box.label}
+          </span>
+        </div>
+      ))}
+
+      <div className="h-[34px] px-2 rounded-lg bg-slate-900/80 border border-white/10 flex items-center justify-center overflow-hidden">
+        <span
+          key={mounted ? timeLeft.seconds : '0'}
+          className="animate-slide-up-tick text-[11px] font-extrabold text-rose-400 tabular-nums leading-none block"
+        >
+          {mounted ? `${timeLeft.seconds}s` : '0s'}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// Isolated Desktop Countdown Sub-Component (prevents parent HeroCarousel & Image re-renders every second)
+const DesktopCountdownPill: React.FC = () => {
+  const { timeLeft, mounted } = useGtaCountdown();
+  const pad2 = (val: string) => val.padStart(2, '0');
+
+  return (
+    <div className="hidden sm:flex items-center gap-1.5 bg-slate-950/85 border border-white/15 px-3.5 py-2 rounded-xl shadow-md">
+      {[
+        { val: mounted ? pad2(timeLeft.days) : '07', unit: 'D' },
+        { val: mounted ? pad2(timeLeft.hours) : '04', unit: 'H' },
+        { val: mounted ? pad2(timeLeft.minutes) : '50', unit: 'M' },
+        { val: mounted ? pad2(timeLeft.seconds) : '00', unit: 'S' },
+      ].map((item, i) => (
+        <React.Fragment key={item.unit}>
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-sm md:text-base font-extrabold text-white tabular-nums tracking-tight">
+              {item.val}
+            </span>
+            <span className="text-[10px] font-bold text-rose-400">
+              {item.unit}
+            </span>
+          </div>
+          {i < 3 && <span className="text-slate-600 font-bold text-xs mx-0.5">:</span>}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
+
 interface Slide {
   id: number;
   image: string;
@@ -88,25 +182,6 @@ interface HeroCarouselProps {
 
 export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>({
-    days: '8',
-    hours: '3',
-    minutes: '22',
-    seconds: '0',
-  });
-  const [mounted, setMounted] = useState(false);
-
-  // Live countdown ticker
-  useEffect(() => {
-    setMounted(true);
-    setTimeLeft(calculateTimeLeft());
-
-    const countdownInterval = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
-
-    return () => clearInterval(countdownInterval);
-  }, []);
 
   // Auto-play carousel every 8 seconds
   useEffect(() => {
@@ -118,7 +193,6 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
 
   const nextSlide = () => setCurrentSlide((currentSlide + 1) % SLIDES.length);
   const prevSlide = () => setCurrentSlide((currentSlide - 1 + SLIDES.length) % SLIDES.length);
-  const pad2 = (val: string) => val.padStart(2, '0');
 
   return (
     <div className="relative w-full rounded-3xl overflow-hidden shadow-lg border border-slate-200/80 mb-6 bg-slate-900 group">
@@ -133,23 +207,23 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
           return (
             <div
               key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+              className={`absolute inset-0 ${
+                idx === 0 ? '' : 'transition-opacity duration-500 ease-in-out'
+              } ${
                 isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
               }`}
             >
-              {/* Background Image with Ken-Burns Zoom FX */}
+              {/* Background Image with Priority LCP Loading on Slide 0 */}
               <Image
                 src={slide.image}
                 alt={slide.title}
                 fill
                 priority={idx === 0}
                 fetchPriority={idx === 0 ? 'high' : 'auto'}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
-                quality={85}
+                sizes="(max-width: 640px) 94vw, (max-width: 1024px) 92vw, 1280px"
+                quality={75}
                 className={`w-full h-full object-cover ${
                   slide.isCountdownSlide ? 'object-[78%_center] sm:object-[70%_center]' : 'object-right sm:object-center'
-                } transition-transform duration-[6000ms] ease-out ${
-                  isActive ? 'scale-100' : 'scale-105'
                 }`}
               />
 
@@ -162,9 +236,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
                     slide.isCountdownSlide
                       ? 'bg-rose-500/20 text-rose-200 border-rose-400/30'
                       : 'bg-blue-500/20 text-blue-300 border-blue-500/30'
-                  } text-[9px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full border mb-1 sm:mb-2 w-fit backdrop-blur-xs transition-all duration-500 ${
-                    isActive ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
-                  }`}
+                  } text-[9px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full border mb-1 sm:mb-2 w-fit`}
                 >
                   {slide.isCountdownSlide ? (
                     <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400 fill-rose-400" />
@@ -174,64 +246,21 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
                   <span>{slide.badge}</span>
                 </div>
 
-                {/* Title */}
-                <h2 className={`text-base sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-snug sm:leading-tight mb-1 sm:mb-2 drop-shadow-sm line-clamp-2 transition-all duration-500 delay-100 ${
-                  isActive ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
-                }`}>
+                {/* Title (Instant paint without delay for fast LCP) */}
+                <h2 className="text-base sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-snug sm:leading-tight mb-1 sm:mb-2 drop-shadow-sm line-clamp-2">
                   {slide.title}
                 </h2>
 
                 {/* Subtitle */}
-                <p className={`text-[11px] sm:text-sm text-slate-300 font-normal line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-4 max-w-xl transition-all duration-500 delay-200 ${
-                  isActive ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
-                }`}>
+                <p className="text-[11px] sm:text-sm text-slate-300 font-normal line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-4 max-w-xl">
                   {slide.subtitle}
                 </p>
 
                 {/* MOBILE ONLY: 3 Calendar Boxes (DAY | HOUR | MIN) + Rolling Seconds on Slide #1 */}
-                {slide.isCountdownSlide && (
-                  <div className="sm:hidden flex items-center gap-1.5 mb-2.5 z-20">
-                    {[
-                      { val: mounted ? timeLeft.days : '8', label: 'DAY' },
-                      { val: mounted ? timeLeft.hours : '3', label: 'HOUR' },
-                      { val: mounted ? timeLeft.minutes : '22', label: 'MIN' },
-                    ].map((box) => (
-                      <div
-                        key={box.label}
-                        className="w-[40px] rounded-lg bg-slate-900/95 border border-white/15 shadow-md overflow-hidden flex flex-col items-center"
-                      >
-                        <div className="w-full h-1 bg-rose-500/80" />
-                        <div className="h-4.5 flex items-center justify-center overflow-hidden pt-0.5">
-                          <span
-                            key={box.val}
-                            className="animate-slide-up-tick text-[11px] font-extrabold text-white tabular-nums leading-none block"
-                          >
-                            {box.val}
-                          </span>
-                        </div>
-                        <span className="text-[7px] font-bold text-slate-400 uppercase tracking-wider pb-0.5 leading-none">
-                          {box.label}
-                        </span>
-                      </div>
-                    ))}
-
-                    <div className="h-[34px] px-2 rounded-lg bg-slate-900/80 border border-white/10 flex items-center justify-center overflow-hidden">
-                      <span
-                        key={mounted ? timeLeft.seconds : '0'}
-                        className="animate-slide-up-tick text-[11px] font-extrabold text-rose-400 tabular-nums leading-none block"
-                      >
-                        {mounted ? `${timeLeft.seconds}s` : '0s'}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                {slide.isCountdownSlide && <MobileCountdownBoxes />}
 
                 {/* CTA Row (with Desktop Countdown on Slide #1) */}
-                <div
-                  className={`flex flex-wrap items-center gap-3 transition-all duration-500 delay-300 z-20 ${
-                    isActive ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                  }`}
-                >
+                <div className="flex flex-wrap items-center gap-3 z-20">
                   <Link
                     href={slide.link}
                     onClick={() => {
@@ -247,28 +276,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
                   </Link>
 
                   {/* Desktop Countdown Pill on Slide #1 */}
-                  {slide.isCountdownSlide && (
-                    <div className="hidden sm:flex items-center gap-1.5 bg-slate-950/85 border border-white/15 px-3.5 py-2 rounded-xl shadow-md">
-                      {[
-                        { val: mounted ? pad2(timeLeft.days) : '08', unit: 'D' },
-                        { val: mounted ? pad2(timeLeft.hours) : '03', unit: 'H' },
-                        { val: mounted ? pad2(timeLeft.minutes) : '22', unit: 'M' },
-                        { val: mounted ? pad2(timeLeft.seconds) : '00', unit: 'S' },
-                      ].map((item, i) => (
-                        <React.Fragment key={item.unit}>
-                          <div className="flex items-baseline gap-0.5">
-                            <span className="text-sm md:text-base font-extrabold text-white tabular-nums tracking-tight">
-                              {item.val}
-                            </span>
-                            <span className="text-[10px] font-bold text-rose-400">
-                              {item.unit}
-                            </span>
-                          </div>
-                          {i < 3 && <span className="text-slate-600 font-bold text-xs mx-0.5">:</span>}
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  )}
+                  {slide.isCountdownSlide && <DesktopCountdownPill />}
                 </div>
 
               </div>
@@ -281,7 +289,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
       <button
         onClick={prevSlide}
         type="button"
-        className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 bg-slate-900/60 hover:bg-slate-900 text-white p-1.5 sm:p-2 rounded-full backdrop-blur-xs border border-white/10 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
+        className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 bg-slate-900/60 hover:bg-slate-900 text-white p-1.5 sm:p-2 rounded-full border border-white/10 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
         title="Previous Slide"
       >
         <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -290,7 +298,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = () => {
       <button
         onClick={nextSlide}
         type="button"
-        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 bg-slate-900/60 hover:bg-slate-900 text-white p-1.5 sm:p-2 rounded-full backdrop-blur-xs border border-white/10 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
+        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 bg-slate-900/60 hover:bg-slate-900 text-white p-1.5 sm:p-2 rounded-full border border-white/10 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
         title="Next Slide"
       >
         <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
@@ -114,9 +114,15 @@ function CatalogContent({
     setLoading(false);
   }, [currentPage, searchQuery, selectedCategory, selectedCondition, minPrice, maxPrice, inStockOnly, sortBy]);
 
+  const isFirstRender = useRef<boolean>(true);
+
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (hasInitialProducts) return;
+    }
     loadProducts();
-  }, [loadProducts]);
+  }, [loadProducts, hasInitialProducts]);
 
   const handleCategorySelect = (catId: string) => {
     setSelectedCategory(catId);

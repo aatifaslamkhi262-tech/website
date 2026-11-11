@@ -52,10 +52,10 @@ export default function HomeClientPage({
   const [orderSuccessData, setOrderSuccessData] = useState<CheckoutResponseData | null>(null);
 
   useEffect(() => {
+    if (hasInitialData) return;
+
     async function loadData() {
-      if (!hasInitialData) {
-        setLoading(true);
-      }
+      setLoading(true);
 
       const [cats, featuredRes] = await Promise.all([
         fetchCategories(),

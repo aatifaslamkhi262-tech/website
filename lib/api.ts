@@ -114,9 +114,12 @@ async function ensureCatalogCache(): Promise<Product[]> {
           categories: globalCatalogCache?.categories || [],
         };
         if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('pgs_catalog_cache_v3', JSON.stringify(globalCatalogCache));
-          } catch (e) {}
+          const scheduleIdle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 150));
+          scheduleIdle(() => {
+            try {
+              localStorage.setItem('pgs_catalog_cache_v3', JSON.stringify(globalCatalogCache));
+            } catch (e) {}
+          });
         }
         return redisCatalog;
       }
@@ -189,9 +192,12 @@ async function ensureCatalogCache(): Promise<Product[]> {
         redisSet('pgs:catalog:v1', filteredProducts, 300).catch(() => {});
 
         if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('pgs_catalog_cache_v3', JSON.stringify(globalCatalogCache));
-          } catch (e) {}
+          const scheduleIdle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 150));
+          scheduleIdle(() => {
+            try {
+              localStorage.setItem('pgs_catalog_cache_v3', JSON.stringify(globalCatalogCache));
+            } catch (e) {}
+          });
         }
 
         return filteredProducts;
